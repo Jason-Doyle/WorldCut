@@ -2,11 +2,18 @@
 
 [![CI](https://github.com/Jason-Doyle/WorldCut/actions/workflows/ci.yml/badge.svg)](https://github.com/Jason-Doyle/WorldCut/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![npm](https://img.shields.io/npm/v/worldcut.svg)](https://www.npmjs.com/package/worldcut)
 
 WorldCut verifies whether observations from independent systems satisfy the
 specific version and time relationships required for a decision.
 
-It takes two things:
+Install the package:
+
+```sh
+npm install worldcut
+```
+
+It takes a versioned verification input containing:
 
 1. **Observations** with resource identity, version, validity, and dependency
    metadata.
@@ -23,6 +30,20 @@ INSUFFICIENT_EVIDENCE
 WorldCut does not decide what the contract should be, infer missing
 relationships, or claim that a provider is truthful. It evaluates the declared
 contract deterministically.
+
+## Production status
+
+WorldCut 0.1 is supported for deterministic decision gating when the documented
+metadata, clock, identity, and trusted-process assumptions hold. It fails closed
+when required evidence is absent.
+
+It is not a general security boundary or a substitute for provider
+authentication, signed provenance, or transactional effect execution. Review
+[`docs/PRODUCTION.md`](docs/PRODUCTION.md) before using a satisfied verdict to
+authorize a production side effect.
+
+Demonstrated package, GitHub integration, and benchmark evidence is summarized
+in [`docs/VALIDATION.md`](docs/VALIDATION.md).
 
 ## Run the examples
 
@@ -129,12 +150,13 @@ treated as a version of another resource.
 
 ### 2. Evaluate each requirement
 
-The MVP supports two requirement types.
+WorldCut 0.1 supports three requirement types.
 
 | Requirement | Question |
 | --- | --- |
 | `dependency` | Did one observation depend on the exact selected version of another resource? |
 | `common_valid_time` | Did all named observations share a non-empty valid interval inside the contract window? |
+| `value_equals` | Does a deterministic JSON value path equal the required value? |
 
 Every required check returns:
 
@@ -266,9 +288,11 @@ npm run verify -- examples/missing-evidence.json
 
 ## Concrete example: satisfied release evidence
 
-`examples/coherent-deployment.json` combines both supported requirement types:
+`examples/coherent-deployment.json` combines all three supported requirement
+types:
 
 - the CI run is bound to `commit-B`, which is the selected branch head;
+- the CI status equals `passed`;
 - the approval and quote share a valid time inside the decision window.
 
 ```sh
@@ -310,6 +334,56 @@ npm run feasibility
 
 Set `WORLDCUT_SAMPLE_GIT_REPO` to inspect another local Git repository.
 
+## GitHub Actions deployment gate
+
+The package includes a production-oriented gate for the latest completed
+`push` run of an exact workflow file or workflow ID:
+
+```sh
+worldcut-github-ci \
+  --repository acme/payments \
+  --branch main \
+  --workflow ci.yml
+```
+
+The gate verifies both:
+
+- the latest completed run concluded with `success`;
+- its `head_sha` equals the branch head observed after the run lookup.
+
+On success it returns `verifiedSha`. Deployment code must consume that exact
+SHA or an immutable artifact built from it—never re-resolve the branch name.
+
+In GitHub Actions the CLI writes `verified_sha` and `workflow_run_id` to
+`GITHUB_OUTPUT`. See
+[`examples/github-actions/deployment-gate.yml`](examples/github-actions/deployment-gate.yml)
+and [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md).
+
+## Agentic Data Kernel
+
+`observationFromAgenticDataResolution` converts an eligible Agentic Data Kernel
+resolution into a WorldCut observation without adding a runtime package
+dependency.
+
+The adapter rejects unresolved conflicts, inactive assertions, assertions
+outside the selected system or valid time, and cross-tenant resource claims.
+See
+[`docs/AGENTIC_DATA_KERNEL.md`](docs/AGENTIC_DATA_KERNEL.md)
+for the namespaced `basis.worldcut` contract and effect-gating guidance.
+
+## JSON Schemas
+
+Immutable protocol 0.1 schemas are published with the package:
+
+```text
+worldcut/schemas/0.1/verification-input.json
+worldcut/schemas/0.1/verification-result.json
+```
+
+Schema validation checks the transport shape. Runtime verification remains
+required for invariants such as unique role bindings, interval ordering, and
+observation timing.
+
 ## CLI
 
 ```text
@@ -334,6 +408,12 @@ Exit codes:
 | `0` | Input was valid; or `--require-satisfied` received a satisfied contract |
 | `1` | Input, file, or runtime error |
 | `2` | `--require-satisfied` received a non-satisfied verdict |
+
+Errors use a stable JSON envelope on stderr:
+
+```json
+{"error":{"code":"WORLDCUT_INVALID_INPUT","message":"..."}}
+```
 
 ## Evaluation
 
@@ -379,11 +459,12 @@ npm run benchmark
 The project uses the Node.js test runner and has no runtime dependencies.
 
 Protocol details and runtime assumptions are documented in
-[`docs/PROTOCOL.md`](docs/PROTOCOL.md).
+[`docs/PROTOCOL.md`](docs/PROTOCOL.md). Production deployment requirements are
+documented in [`docs/PRODUCTION.md`](docs/PRODUCTION.md).
 
 ## Scope
 
-WorldCut is experimental. It is not:
+WorldCut has a deliberately narrow production contract. It is not:
 
 - a distributed transaction manager;
 - a source-of-truth database;

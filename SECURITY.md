@@ -1,7 +1,7 @@
 # Security Policy
 
-WorldCut is experimental and is not a standalone security boundary. Do not use
-it as the sole authorization control for production side effects.
+WorldCut is not a standalone security boundary. Do not use it as the sole
+authorization control for production side effects.
 
 ## Reporting a vulnerability
 
@@ -14,4 +14,5 @@ potential impact. Reports will be acknowledged as soon as practical.
 
 ## Supported versions
 
-Only the latest revision of the `main` branch is currently supported.
+The latest `0.1.x` release and the current `main` branch receive security
+updates.

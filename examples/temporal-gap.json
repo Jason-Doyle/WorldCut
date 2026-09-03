@@ -1,4 +1,5 @@
 {
+  "protocolVersion": "0.1",
   "contract": {
     "id": "approved-price-window",
     "version": "1",

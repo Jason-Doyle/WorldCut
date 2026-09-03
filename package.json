@@ -1,7 +1,6 @@
 {
   "name": "worldcut",
   "version": "0.1.0",
-  "private": true,
   "description": "Verify cross-service observations against explicit version and temporal decision constraints.",
   "license": "Apache-2.0",
   "author": "Jason Doyle",
@@ -21,30 +20,86 @@
     "typescript"
   ],
   "packageManager": "npm@10.9.7",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  },
   "type": "module",
+  "sideEffects": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "worldcut": "dist/cli.js"
+    "worldcut": "dist/cli.js",
+    "worldcut-github-ci": "dist/github-ci-cli.js"
   },
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./integrations/github-actions": {
+      "types": "./dist/integrations/github-actions.d.ts",
+      "import": "./dist/integrations/github-actions.js"
+    },
+    "./integrations/agentic-data-kernel": {
+      "types": "./dist/integrations/agentic-data-kernel.d.ts",
+      "import": "./dist/integrations/agentic-data-kernel.js"
+    },
+    "./schemas/0.1/verification-input.json": "./schema/0.1/verification-input.schema.json",
+    "./schemas/0.1/verification-result.json": "./schema/0.1/verification-result.schema.json",
+    "./package.json": "./package.json"
   },
   "engines": {
-    "node": ">=22.19.0"
+    "node": ">=22.19.0",
+    "npm": ">=10.0.0"
   },
+  "files": [
+    "dist/*.js",
+    "dist/*.js.map",
+    "dist/*.d.ts",
+    "dist/adapters/*.js",
+    "dist/adapters/*.js.map",
+    "dist/adapters/*.d.ts",
+    "dist/integrations/*.js",
+    "dist/integrations/*.js.map",
+    "dist/integrations/*.d.ts",
+    "schema",
+    "examples/*.json",
+    "examples/github-actions",
+    "docs/PROTOCOL.md",
+    "docs/PRODUCTION.md",
+    "docs/INTEGRATIONS.md",
+    "docs/AGENTIC_DATA_KERNEL.md",
+    "docs/VALIDATION.md",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "SUPPORT.md",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "prepack": "npm run build",
+    "check": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && node --test \"dist/test/*.test.js\"",
+    "test:package": "node scripts/test-package.mjs",
+    "release:check": "npm run check && npm test && npm run examples && npm run benchmark && npm run test:package",
     "example": "npm run examples",
     "examples": "npm run build && node dist/examples/fixtures.js",
     "verify": "npm run build && node dist/cli.js",
+    "integration:github": "npm run build && node dist/github-ci-cli.js --repository Jason-Doyle/WorldCut --branch main --workflow ci.yml",
+    "integration:github:coverage": "npm run build && node dist/examples/github-coverage.js",
     "benchmark": "npm run build && node dist/benchmark/run.js",
-    "feasibility": "npm run build && node dist/feasibility/run.js",
-    "check": "npm run build && node --test \"dist/test/*.test.js\""
+    "feasibility": "npm run build && node dist/feasibility/run.js"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "semver": "^7.8.5",
     "typescript": "^5.9.2"
   }
 }

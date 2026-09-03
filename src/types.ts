@@ -66,9 +66,17 @@ export interface CommonValidTimeRequirement extends RequirementBase {
   within: ValidityInterval;
 }
 
+export interface ValueEqualsRequirement extends RequirementBase {
+  type: "value_equals";
+  role: string;
+  path: string[];
+  expected: JsonValue;
+}
+
 export type ContractRequirement =
   | DependencyRequirement
-  | CommonValidTimeRequirement;
+  | CommonValidTimeRequirement
+  | ValueEqualsRequirement;
 
 export interface ContractAssumptions {
   clockModel: "trusted_normalized";
@@ -153,6 +161,7 @@ export interface VerificationResult {
 }
 
 export interface VerificationInput {
+  protocolVersion: "0.1";
   contract: CoherenceContract;
   observations: Observation[];
 }

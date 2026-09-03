@@ -78,3 +78,20 @@ test("CLI can enforce a satisfied contract for automation", () => {
 
   assert.equal(result.status, 2);
 });
+
+test("CLI emits a stable JSON error envelope", () => {
+  const result = spawnSync(
+    process.execPath,
+    [join(process.cwd(), "dist", "cli.js"), "missing-file.json"],
+    {
+      encoding: "utf8",
+    },
+  );
+
+  assert.equal(result.status, 1);
+  const error = JSON.parse(result.stderr) as {
+    error: { code: string; message: string };
+  };
+  assert.equal(error.error.code, "WORLDCUT_FILE_READ_FAILED");
+  assert.match(error.error.message, /Unable to read/);
+});

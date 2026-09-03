@@ -121,6 +121,7 @@ export function coherentDeploymentScenario(): Scenario {
     id: "coherent-deployment",
     description: "The passing CI run is bound to the current branch head.",
     input: {
+      protocolVersion: "0.1",
       contract: deploymentContract(),
       observations: [headObservation("B"), ciObservation("B", "ci-101")],
     },
@@ -135,6 +136,7 @@ export function mismatchedDeploymentScenario(): Scenario {
     description:
       "The current branch head is B, but the selected passing CI run tested A.",
     input: {
+      protocolVersion: "0.1",
       contract: deploymentContract(),
       observations: [headObservation("B"), ciObservation("A", "ci-100")],
     },
@@ -149,6 +151,7 @@ export function missingDependencyScenario(): Scenario {
     description:
       "The CI provider reports PASS without identifying the tested revision.",
     input: {
+      protocolVersion: "0.1",
       contract: deploymentContract(),
       observations: [headObservation("B"), ciObservation(null, "ci-unknown")],
     },
@@ -217,7 +220,11 @@ export function nonOverlappingValidityScenario(): Scenario {
     id: "fresh-but-never-concurrent",
     description:
       "Both records were fetched recently, but their declared validity intervals never overlap.",
-    input: { contract, observations: [approval, quote] },
+    input: {
+      protocolVersion: "0.1",
+      contract,
+      observations: [approval, quote],
+    },
     groundTruthSafe: false,
     metadataComplete: true,
   };

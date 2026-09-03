@@ -1,0 +1,31 @@
+name: Feature request
+description: Propose a focused requirement or integration
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Decision use case
+      description: Describe the decision and why existing requirements are insufficient.
+    validations:
+      required: true
+  - type: textarea
+    id: invariant
+    attributes:
+      label: Required invariant
+      description: State the property the verifier should establish.
+    validations:
+      required: true
+  - type: textarea
+    id: missing-evidence
+    attributes:
+      label: Missing-evidence behavior
+      description: Explain when the requirement should return UNKNOWN.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

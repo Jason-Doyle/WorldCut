@@ -3,6 +3,18 @@
 WorldCut verifies an explicit decision contract over a selected set of
 cross-service observations.
 
+Every transport input includes:
+
+```json
+{
+  "protocolVersion": "0.1",
+  "contract": {},
+  "observations": []
+}
+```
+
+Unsupported protocol versions are rejected before evaluation.
+
 It does not decide which observations an agent should select, infer missing
 dependencies, or claim that all facts in a system form one globally consistent
 snapshot.
@@ -151,6 +163,39 @@ truthful.
 
 There is no implicit intersection across all selected observations. Temporal
 coexistence is checked only when the contract explicitly requires it.
+
+## Value-equals requirement
+
+`value_equals` follows a deterministic path through an observation's JSON
+value and compares the result with the contract's expected JSON value.
+
+```json
+{
+  "id": "ci-conclusion-success",
+  "type": "value_equals",
+  "description": "The CI conclusion is successful",
+  "role": "ci",
+  "path": ["conclusion"],
+  "expected": "success"
+}
+```
+
+A missing role or path is `UNKNOWN`. A present unequal value is `VIOLATED`.
+Values are compared through WorldCut's canonical JSON representation; no model
+or semantic similarity is involved.
+
+## JSON Schema
+
+The package exposes immutable protocol schemas:
+
+```text
+worldcut/schemas/0.1/verification-input.json
+worldcut/schemas/0.1/verification-result.json
+```
+
+JSON Schema validates transport shape. Runtime validation additionally checks
+cross-record uniqueness, interval ordering, observation timing, and other
+invariants that the schema does not express.
 
 ## Verification record digest
 
