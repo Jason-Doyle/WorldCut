@@ -34,13 +34,19 @@ test("satisfies a decision contract when required evidence is bound correctly", 
   assert.equal(result.acquisitionPlan.status, "NOT_NEEDED");
 });
 
-test("verification engine version matches the package release", () => {
-  const packageJson = JSON.parse(
-    readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
-  ) as { version: string };
+test("verification engine version matches the conformance ruleset", () => {
+  const manifest = JSON.parse(
+    readFileSync(
+      new URL(
+        "../../conformance/0.1/manifest.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  ) as { engineVersion: string };
   const result = verifyDecisionContract(coherentDeploymentScenario().input);
 
-  assert.equal(result.engineVersion, packageJson.version);
+  assert.equal(result.engineVersion, manifest.engineVersion);
 });
 
 test("checks required values without model interpretation", () => {

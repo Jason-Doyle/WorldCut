@@ -26,7 +26,8 @@ interface SearchState {
 
 const MAX_UNRESOLVED_REQUIREMENTS = 64;
 const MAX_OPTION_COMBINATIONS = 65_536;
-const MAX_SEARCH_STATES = 1_000_000;
+const MAX_SEARCH_STATES =
+  (MAX_UNRESOLVED_REQUIREMENTS + 1) * MAX_OPTION_COMBINATIONS;
 
 function compareSolutions(
   left: CandidateSolution,
@@ -62,6 +63,7 @@ function addOption(
   for (const action of option.actions) {
     if (
       !Number.isFinite(action.cost) ||
+      !Number.isSafeInteger(action.cost) ||
       action.cost < 0 ||
       action.cost > MAX_ACQUISITION_COST
     ) {

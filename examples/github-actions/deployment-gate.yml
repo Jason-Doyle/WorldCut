@@ -23,7 +23,7 @@ jobs:
           node-version: 22.19.0
 
       - name: Install WorldCut
-        run: npm install --global worldcut@0.1.0
+        run: npm install --global worldcut@0.2.0
 
       - name: Verify latest completed CI run
         id: worldcut

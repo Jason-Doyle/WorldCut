@@ -45,6 +45,9 @@ authorize a production side effect.
 Demonstrated package, GitHub integration, and benchmark evidence is summarized
 in [`docs/VALIDATION.md`](docs/VALIDATION.md).
 
+Language-neutral protocol semantics and golden vectors are under
+[`spec/0.1`](spec/0.1) and [`conformance/0.1`](conformance/0.1).
+
 ## Run the examples
 
 ```sh

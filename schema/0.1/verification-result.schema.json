@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Jason-Doyle/WorldCut/v0.1.0/schema/0.1/verification-result.schema.json",
+  "$id": "https://raw.githubusercontent.com/Jason-Doyle/WorldCut/v0.2.0/schema/0.1/verification-result.schema.json",
   "title": "WorldCut verification result 0.1",
   "type": "object",
   "additionalProperties": false,
@@ -146,7 +146,7 @@
           "minLength": 1
         },
         "cost": {
-          "type": "number",
+          "type": "integer",
           "minimum": 0
         },
         "description": {
@@ -272,7 +272,7 @@
           }
         },
         "totalCost": {
-          "type": "number",
+          "type": "integer",
           "minimum": 0
         },
         "coveredRequirementIds": {

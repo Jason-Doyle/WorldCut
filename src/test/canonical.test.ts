@@ -56,10 +56,22 @@ test("canonical JSON ignores inherited Array toJSON hooks", () => {
     configurable: true,
     value: () => ["polluted"],
   });
+
   try {
     assert.equal(canonicalJson([1, 2]), "[1,2]");
     assert.notEqual(sha256Digest([1, 2]), sha256Digest([3, 4]));
   } finally {
     delete (Array.prototype as { toJSON?: unknown }).toJSON;
   }
+});
+
+test("canonical JSON rejects unpaired Unicode surrogates", () => {
+  assert.throws(
+    () => canonicalJson(String.fromCharCode(0xd800)),
+    /unpaired high surrogate/,
+  );
+  assert.throws(
+    () => canonicalJson(String.fromCharCode(0xdc00)),
+    /unpaired low surrogate/,
+  );
 });
