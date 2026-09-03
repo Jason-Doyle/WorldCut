@@ -1,0 +1,14 @@
+{
+  "protocolVersion": "0.1",
+  "cases": [
+    {
+      "name": "unpaired-high-surrogate",
+      "file": "raw/unpaired-high-surrogate.json",
+      "sha256": "832c9023d610d289d60ef5a3c7d14f2bdff1a29d24bef0b7683c24efae1e4d23",
+      "acceptedOutcomes": [
+        "PARSE_ERROR",
+        "WORLDCUT_INVALID_INPUT"
+      ]
+    }
+  ]
+}

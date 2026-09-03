@@ -1,0 +1,60 @@
+{
+  "canonicalization": "worldcut-json-v1",
+  "cases": [
+    {
+      "name": "object-key-order",
+      "value": {
+        "z": 1,
+        "a": 2
+      },
+      "expectedCanonicalJson": "{\"a\":2,\"z\":1}",
+      "expectedSha256": "c2985c5ba6f7d2a55e768f92490ca09388e95bc4cccb9fdf11b15f4d42f93e73"
+    },
+    {
+      "name": "nested",
+      "value": {
+        "b": [
+          true,
+          null,
+          {
+            "y": "two",
+            "x": "one"
+          }
+        ],
+        "a": 0
+      },
+      "expectedCanonicalJson": "{\"a\":0,\"b\":[true,null,{\"x\":\"one\",\"y\":\"two\"}]}",
+      "expectedSha256": "c7b434323f6442528834059ff019ce0155446ab48085829dcfeb497934c89e61"
+    },
+    {
+      "name": "unicode-key-order",
+      "value": {
+        "1": "one",
+        "\r": "cr",
+        "€": "euro",
+        "😀": "face",
+        "ö": "o"
+      },
+      "expectedCanonicalJson": "{\"\\r\":\"cr\",\"1\":\"one\",\"ö\":\"o\",\"€\":\"euro\",\"😀\":\"face\"}",
+      "expectedSha256": "7d173b0f794426c197248618236ad042c878322f16664325ee097a6c697fd60d"
+    },
+    {
+      "name": "numbers",
+      "value": [
+        333333333.3333333,
+        1e+30,
+        4.5,
+        0.002,
+        1e-27
+      ],
+      "expectedCanonicalJson": "[333333333.3333333,1e+30,4.5,0.002,1e-27]",
+      "expectedSha256": "7c6bc86d861387d823ae596b79ca0b26567dddc22a77acb1f4e06d441f555adf"
+    },
+    {
+      "name": "escaped-string",
+      "value": "€$\u000f\nA'B\"\\\\\"/",
+      "expectedCanonicalJson": "\"€$\\u000f\\nA'B\\\"\\\\\\\\\\\"/\"",
+      "expectedSha256": "48caa679d7f31885aac4a400aa52732f9b304c1a417dfa6e75631e81ca2f785c"
+    }
+  ]
+}
