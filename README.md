@@ -3,148 +3,393 @@
 [![CI](https://github.com/Jason-Doyle/WorldCut/actions/workflows/ci.yml/badge.svg)](https://github.com/Jason-Doyle/WorldCut/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-WorldCut is an experimental TypeScript library for verifying that observations
-from independent systems satisfy the version and time relationships required
-by a decision.
+WorldCut verifies whether observations from independent systems satisfy the
+specific version and time relationships required for a decision.
 
-## The problem
+It takes two things:
 
-An agent can combine individually correct responses into an unsupported
-conclusion:
+1. **Observations** with resource identity, version, validity, and dependency
+   metadata.
+2. **A decision contract** that states which relationships must hold.
+
+It returns one of three verdicts:
 
 ```text
-GitHub: current branch head = B
-CI:     run passed; tested branch head = A
-
-Required relationship: tested head == current head
+CONTRACT_SATISFIED
+CONTRACT_VIOLATED
+INSUFFICIENT_EVIDENCE
 ```
 
-Both responses are true, but they do not justify deploying `B`.
+WorldCut does not decide what the contract should be, infer missing
+relationships, or claim that a provider is truthful. It evaluates the declared
+contract deterministically.
 
-Freshness does not solve the broader problem. Two records can be fetched
-milliseconds apart and still describe conditions that were never valid at the
-same time.
+## Run the examples
 
-## What WorldCut verifies
+```sh
+git clone https://github.com/Jason-Doyle/WorldCut.git
+cd WorldCut
+npm ci
+npm run examples
+```
 
-A verification request contains:
+Output:
 
-- named observation roles;
-- canonical resource identities;
-- optional version, validity, and dependency witnesses;
-- a decision contract describing the relationships that must hold.
+```text
+Fixture                     Verdict
+--------------------------  ---------------------
+coherent-deployment.json    CONTRACT_SATISFIED
+git-ci-mismatch.json        CONTRACT_VIOLATED
+temporal-gap.json           CONTRACT_VIOLATED
+missing-evidence.json       INSUFFICIENT_EVIDENCE
+```
 
-Each requirement returns one of:
+Run one verification:
+
+```sh
+npm run verify -- examples/git-ci-mismatch.json
+```
+
+Use `--require-satisfied` in automation. It exits with code `2` when the
+contract is violated or evidence is insufficient:
+
+```sh
+npm run verify -- examples/coherent-deployment.json --require-satisfied
+```
+
+## What problem does this solve?
+
+An agent can combine individually correct responses into a conclusion that the
+responses do not support.
+
+```mermaid
+sequenceDiagram
+    participant G as GitHub
+    participant C as CI
+    participant A as Agent
+    participant W as WorldCut
+
+    G-->>A: Current branch head = commit-B
+    C-->>A: PASS; tested head = commit-A
+    A->>W: Observations + deployment contract
+    W-->>A: CONTRACT_VIOLATED<br/>commit-A != commit-B
+    A--xG: Deployment is not authorized
+```
+
+Nothing in either provider response is necessarily false:
+
+- the branch currently points to `commit-B`;
+- the CI run really passed;
+- that CI run tested `commit-A`.
+
+The unsupported step is joining those facts into “`commit-B` passed CI.”
+
+Ordinary freshness checks cannot detect that error. Exact dependency checking
+can detect this example, but it cannot express every relationship a decision
+may require, such as whether conditions from independent providers were valid
+at a common time.
+
+## How WorldCut fits into a decision path
+
+```mermaid
+flowchart LR
+    G["GitHub<br/>head = commit-B"] --> O["Named observations"]
+    C["CI<br/>PASS(commit-A)"] --> O
+    P["Pricing<br/>quote validity"] --> O
+    A["Approval service<br/>approval validity"] --> O
+
+    D["Decision contract<br/>required relationships"] --> V["WorldCut verifier"]
+    O --> V
+
+    V --> S["CONTRACT_SATISFIED<br/>decision may continue"]
+    V --> X["CONTRACT_VIOLATED<br/>known mismatch"]
+    V --> U["INSUFFICIENT_EVIDENCE<br/>required metadata missing"]
+```
+
+WorldCut evaluates only the selected observations and contract. It does not
+fetch every provider itself or maintain a global database snapshot.
+
+## Verification model
+
+### 1. Bind observations to named roles
+
+Contracts refer to roles such as `head`, `ci`, `approval`, and `quote`.
+At most one observation may be bound to a role. If a required role has no
+observation, its requirement is `UNKNOWN` and the aggregate verdict is
+`INSUFFICIENT_EVIDENCE`.
+
+Each resource identity has four independently compared components:
+
+```text
+provider + account + kind + key
+```
+
+This prevents a version from one repository, tenant, or provider from being
+treated as a version of another resource.
+
+### 2. Evaluate each requirement
+
+The MVP supports two requirement types.
+
+| Requirement | Question |
+| --- | --- |
+| `dependency` | Did one observation depend on the exact selected version of another resource? |
+| `common_valid_time` | Did all named observations share a non-empty valid interval inside the contract window? |
+
+Every required check returns:
 
 | Result | Meaning |
 | --- | --- |
-| `SATISFIED` | Available evidence establishes the requirement |
-| `VIOLATED` | Available evidence establishes that the requirement is false |
-| `UNKNOWN` | Required evidence is missing |
+| `SATISFIED` | Available metadata establishes the requirement |
+| `VIOLATED` | Available metadata establishes that the requirement is false |
+| `UNKNOWN` | A required observation or witness is missing |
 
-Required results aggregate conservatively:
+### 3. Aggregate conservatively
 
-```text
-any violation       -> CONTRACT_VIOLATED
-otherwise unknown   -> INSUFFICIENT_EVIDENCE
-all satisfied       -> CONTRACT_SATISFIED
+```mermaid
+flowchart TD
+    R["Evaluate all required requirements"] --> V{"Any VIOLATED?"}
+    V -- Yes --> CV["CONTRACT_VIOLATED"]
+    V -- No --> U{"Any UNKNOWN?"}
+    U -- Yes --> IE["INSUFFICIENT_EVIDENCE"]
+    U -- No --> CS["CONTRACT_SATISFIED"]
 ```
 
-The current implementation supports exact version dependencies and scoped
-common-valid-time checks over half-open intervals.
+An unknown requirement never becomes implicit permission.
 
-```ts
-import { verifyDecisionContract } from "./dist/index.js";
+### 4. Produce an auditable result
 
-const result = verifyDecisionContract({
-  contract,
-  observations,
-});
+The result contains:
 
-if (result.verdict !== "CONTRACT_SATISFIED") {
-  console.error(result.requirementResults);
+- requirement-level statuses and explanations;
+- coverage counts;
+- bounded acquisition options for missing or mismatched evidence;
+- a deterministic digest of the verification record.
+
+The acquisition plan identifies evidence that could be refreshed or acquired.
+It is not a guarantee that refreshing the world will make the contract pass.
+The digest detects record changes; it is not a digital signature.
+
+## Concrete example: wrong CI revision
+
+The contract requires the CI observation to identify the same branch-head
+version selected for deployment:
+
+```json
+{
+  "id": "ci-tested-current-head",
+  "type": "dependency",
+  "description": "The passing CI run tested the selected branch head",
+  "dependentRole": "ci",
+  "targetRole": "head",
+  "dependencyName": "tested_head"
 }
 ```
 
-See [`src/examples/deployment.ts`](src/examples/deployment.ts) for runnable
-examples and [`docs/PROTOCOL.md`](docs/PROTOCOL.md) for the data model and
-runtime semantics.
+The selected observations say:
+
+```text
+head.witness.version                 = commit-B
+ci.witness.dependencies.tested_head = commit-A
+```
+
+Relevant fields from the CLI output:
+
+```json
+{
+  "contractId": "deploy-current-tested-head",
+  "verdict": "CONTRACT_VIOLATED",
+  "coverage": {
+    "required": 1,
+    "satisfied": 0,
+    "violated": 1,
+    "unknown": 0,
+    "advisory": 0
+  },
+  "requirements": [
+    {
+      "id": "ci-tested-current-head",
+      "status": "VIOLATED",
+      "summary": "The passing CI run tested the selected branch head: commit-A does not equal commit-B."
+    }
+  ]
+}
+```
+
+Run it:
+
+```sh
+npm run verify -- examples/git-ci-mismatch.json
+```
+
+## Concrete example: fresh records that never coexisted
+
+The approval and quote are both fetched immediately before the decision, but
+their declared valid intervals do not overlap:
+
+```mermaid
+flowchart LR
+    A["Approval valid<br/>17:55:00.000 - 17:58:00.000"] --> N["No common valid instant"]
+    Q["Quote valid<br/>17:58:00.001 - 18:03:00.000"] --> N
+    N --> R["CONTRACT_VIOLATED"]
+```
+
+A TTL check sees two fresh reads and passes. WorldCut evaluates the contract's
+`common_valid_time` requirement and rejects the decision.
+
+```sh
+npm run verify -- examples/temporal-gap.json
+```
+
+## Concrete example: missing dependency metadata
+
+The CI provider says the run passed but does not identify which revision it
+tested. WorldCut cannot prove a mismatch, but it also cannot authorize the
+deployment. Relevant output:
+
+```json
+{
+  "verdict": "INSUFFICIENT_EVIDENCE",
+  "requirements": [
+    {
+      "id": "ci-tested-current-head",
+      "status": "UNKNOWN",
+      "summary": "ci does not expose dependency tested_head."
+    }
+  ]
+}
+```
+
+```sh
+npm run verify -- examples/missing-evidence.json
+```
+
+## Concrete example: satisfied release evidence
+
+`examples/coherent-deployment.json` combines both supported requirement types:
+
+- the CI run is bound to `commit-B`, which is the selected branch head;
+- the approval and quote share a valid time inside the decision window.
+
+```sh
+npm run verify -- examples/coherent-deployment.json --require-satisfied
+```
+
+The result is `CONTRACT_SATISFIED`.
+
+## What WorldCut checks—and what it does not
+
+| Concern | WorldCut behavior |
+| --- | --- |
+| “Was this observation fetched recently?” | Records `observedAt`, but freshness alone is not authorization |
+| “Did CI test this exact selected revision?” | Supported through an exact dependency requirement |
+| “Were these conditions valid together?” | Supported through a scoped common-valid-time requirement |
+| “Is required metadata missing?” | Returns `INSUFFICIENT_EVIDENCE` |
+| “Which evidence could be reacquired?” | Returns a bounded acquisition plan |
+| “Is the provider telling the truth?” | Not established |
+| “What relationships should the business require?” | Supplied by the caller's contract |
+| “Can multiple providers be frozen transactionally?” | Not attempted |
+| “Is the result cryptographically signed?” | No; the record contains a deterministic digest only |
+
+## Metadata adapters
+
+The included adapters capture native resource-version material:
+
+| Adapter | Exact version witness | Important limitation |
+| --- | --- | --- |
+| Git | Commit SHA for an exact local branch ref | Another system must still declare its dependency on that SHA |
+| HTTP | Syntactically valid strong `ETag` | Weak ETags and `Last-Modified` are descriptive only |
+| Kubernetes | Opaque `metadata.resourceVersion` | Clients must not interpret or sort the value |
+
+These adapters do not manufacture dependency or validity relationships that a
+provider does not expose.
+
+```sh
+npm run feasibility
+```
+
+Set `WORLDCUT_SAMPLE_GIT_REPO` to inspect another local Git repository.
+
+## CLI
+
+```text
+Usage: worldcut <verification.json> [options]
+
+Options:
+  --full               Print the complete verification result
+  --require-satisfied  Exit with code 2 unless the contract is satisfied
+  --help               Show help
+```
+
+Through npm:
+
+```sh
+npm run verify -- examples/git-ci-mismatch.json --full
+```
+
+Exit codes:
+
+| Code | Meaning |
+| ---: | --- |
+| `0` | Input was valid; or `--require-satisfied` received a satisfied contract |
+| `1` | Input, file, or runtime error |
+| `2` | `--require-satisfied` received a non-satisfied verdict |
 
 ## Evaluation
 
-The repository includes a deterministic event-history simulator and five
-comparison strategies: latest-value selection, a TTL sweep, permissive and
-strict dependency checking, and equivalent hand-written contract checks.
+The repository includes an independent event-history simulator and comparison
+strategies for latest-value selection, TTL freshness, permissive and strict
+dependency checks, and equivalent hand-written predicates.
 
 Across 16,000 generated decisions:
 
 - WorldCut produced no false authorizations with complete, truthful metadata;
 - it authorized every safe complete-metadata case;
 - strict dependency-only validation still authorized 676 and 976 unsafe cases
-  in the two complete-metadata profiles because it did not evaluate the scoped
-  temporal requirement;
-- WorldCut and equivalent hand-written predicates produced identical verdicts;
+  in the two complete-metadata profiles because it ignored the scoped temporal
+  requirement;
+- equivalent hand-written predicates produced exactly the same verdicts as
+  WorldCut;
 - weak metadata caused 3,505 abstentions in 4,000 trials.
 
-These results support a narrow claim: freshness and exact dependency checks do
-not express every cross-service compatibility requirement. They do not prove
+The result supports a limited claim: freshness and exact dependency checks do
+not express every cross-service compatibility requirement. It does not prove
 that WorldCut is better than equivalent application code, that production APIs
-expose enough metadata, or that the acquisition planner reduces operational
+expose enough metadata, or that the acquisition planner lowers operational
 cost.
-
-Run the evaluation locally:
 
 ```sh
 npm run benchmark
 ```
 
-The command writes detailed results under `benchmark/`, which is intentionally
-excluded from version control.
-
-## Metadata adapters
-
-The MVP can capture native resource versions from:
-
-- local Git branches using commit SHAs;
-- HTTP resources using strong `ETag` validators;
-- Kubernetes objects using `metadata.resourceVersion`.
-
-These identifiers establish per-resource versions. They do not create
-cross-provider dependency or validity information automatically.
-Weak ETags and `Last-Modified` headers are captured as descriptive metadata but
-cannot satisfy an exact-version requirement.
-
-```sh
-npm run feasibility
-```
-
-Set `WORLDCUT_SAMPLE_GIT_REPO` to probe a different local Git repository.
+Detailed generated results are written to `benchmark/` and excluded from
+version control.
 
 ## Development
 
-WorldCut requires Node.js 22.19 or newer.
+Requires Node.js 22.19 or newer.
 
 ```sh
 npm ci
 npm run check
-npm run example
+npm run examples
 npm run benchmark
 ```
 
 The project uses the Node.js test runner and has no runtime dependencies.
 
+Protocol details and runtime assumptions are documented in
+[`docs/PROTOCOL.md`](docs/PROTOCOL.md).
+
 ## Scope
 
-WorldCut is not:
+WorldCut is experimental. It is not:
 
 - a distributed transaction manager;
 - a source-of-truth database;
 - a cryptographic attestation system;
 - a same-process JavaScript security boundary;
 - proof that provider metadata is complete or truthful.
-
-The API is experimental and may change as real integrations test whether the
-contract remains useful outside the simulator.
 
 ## Contributing
 

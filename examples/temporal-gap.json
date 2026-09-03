@@ -1,0 +1,76 @@
+{
+  "contract": {
+    "id": "approved-price-window",
+    "version": "1",
+    "decisionTime": "2026-09-02T18:00:00.000Z",
+    "assumptions": {
+      "clockModel": "trusted_normalized",
+      "intervalModel": "half_open",
+      "metadataModel": "honest_but_possibly_incomplete"
+    },
+    "requirements": [
+      {
+        "id": "approval-and-quote-overlap",
+        "type": "common_valid_time",
+        "description": "The approval and quote were valid at a common time",
+        "roles": [
+          "approval",
+          "quote"
+        ],
+        "within": {
+          "from": "2026-09-02T17:55:00.000Z",
+          "until": "2026-09-02T18:00:00.001Z"
+        }
+      }
+    ]
+  },
+  "observations": [
+    {
+      "id": "obs-approval-expired",
+      "role": "approval",
+      "resource": {
+        "provider": "change.example",
+        "account": "acme",
+        "kind": "approval",
+        "key": "release-2041"
+      },
+      "value": {
+        "approved": true
+      },
+      "observedAt": "2026-09-02T17:59:59.000Z",
+      "acquisitionCost": 2,
+      "witness": {
+        "provenance": "provider_asserted",
+        "version": "approval-7",
+        "validity": {
+          "from": "2026-09-02T17:55:00.000Z",
+          "until": "2026-09-02T17:58:00.000Z"
+        }
+      }
+    },
+    {
+      "id": "obs-quote-later",
+      "role": "quote",
+      "resource": {
+        "provider": "pricing.example",
+        "account": "acme",
+        "kind": "quote",
+        "key": "release-2041"
+      },
+      "value": {
+        "amount": 1250,
+        "currency": "USD"
+      },
+      "observedAt": "2026-09-02T17:59:59.500Z",
+      "acquisitionCost": 3,
+      "witness": {
+        "provenance": "provider_asserted",
+        "version": "quote-17",
+        "validity": {
+          "from": "2026-09-02T17:58:00.001Z",
+          "until": "2026-09-02T18:03:00.000Z"
+        }
+      }
+    }
+  ]
+}

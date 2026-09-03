@@ -1,0 +1,76 @@
+{
+  "contract": {
+    "id": "deploy-current-tested-head",
+    "version": "1",
+    "decisionTime": "2026-09-02T18:00:00.000Z",
+    "assumptions": {
+      "clockModel": "trusted_normalized",
+      "intervalModel": "half_open",
+      "metadataModel": "honest_but_possibly_incomplete"
+    },
+    "requirements": [
+      {
+        "id": "ci-tested-current-head",
+        "type": "dependency",
+        "description": "The passing CI run tested the selected branch head",
+        "dependentRole": "ci",
+        "targetRole": "head",
+        "dependencyName": "tested_head"
+      }
+    ]
+  },
+  "observations": [
+    {
+      "id": "obs-head-b",
+      "role": "head",
+      "resource": {
+        "provider": "github",
+        "account": "acme",
+        "kind": "branch_head",
+        "key": "payments/main"
+      },
+      "value": {
+        "commit": "commit-B"
+      },
+      "observedAt": "2026-09-02T17:59:59.000Z",
+      "acquisitionCost": 1,
+      "witness": {
+        "provenance": "provider_asserted",
+        "version": "commit-B"
+      }
+    },
+    {
+      "id": "obs-ci-a",
+      "role": "ci",
+      "resource": {
+        "provider": "ci.example",
+        "account": "acme",
+        "kind": "ci_run",
+        "key": "run-2040"
+      },
+      "value": {
+        "status": "passed"
+      },
+      "observedAt": "2026-09-02T17:59:59.500Z",
+      "acquisitionCost": 4,
+      "witness": {
+        "provenance": "provider_asserted",
+        "version": "run-2040",
+        "dependencies": [
+          {
+            "name": "tested_head",
+            "resource": {
+              "provider": "github",
+              "account": "acme",
+              "kind": "branch_head",
+              "key": "payments/main"
+            },
+            "relation": "exact",
+            "version": "commit-A",
+            "provenance": "provider_asserted"
+          }
+        ]
+      }
+    }
+  ]
+}
