@@ -10,6 +10,23 @@ export function compareCanonicalText(left: string, right: string): number {
   return 0;
 }
 
+function assertValidUnicode(value: string, field: string): void {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(index + 1);
+      if (!(next >= 0xdc00 && next <= 0xdfff)) {
+        throw new TypeError(`${field} contains an unpaired high surrogate`);
+      }
+      index += 1;
+      continue;
+    }
+    if (code >= 0xdc00 && code <= 0xdfff) {
+      throw new TypeError(`${field} contains an unpaired low surrogate`);
+    }
+  }
+}
+
 function snapshot(
   value: unknown,
   field: string,
@@ -17,9 +34,13 @@ function snapshot(
 ): unknown {
   if (
     value === null ||
-    typeof value === "string" ||
     typeof value === "boolean"
   ) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    assertValidUnicode(value, field);
     return value;
   }
 
@@ -98,6 +119,7 @@ function snapshot(
     ancestors.add(objectValue);
     const result = Object.create(null) as Record<string, unknown>;
     for (const key of Object.getOwnPropertyNames(objectValue)) {
+      assertValidUnicode(key, `${field} key`);
       const descriptor = Object.getOwnPropertyDescriptor(objectValue, key);
       if (
         !descriptor ||

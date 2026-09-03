@@ -37,7 +37,7 @@ stronger provider-specific mechanism before authorization.
 ## JSON Schema boundary
 
 Published schemas validate the wire format, required fields, enums, timestamp
-shape, and non-negative costs.
+shape, and bounded non-negative integer costs.
 
 Runtime verification additionally enforces invariants that JSON Schema cannot
 express directly, including:

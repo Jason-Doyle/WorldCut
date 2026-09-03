@@ -139,3 +139,15 @@ test("bounds long single-option chains without recursion", () => {
   assert.equal(result.status, "INCOMPLETE");
   assert.match(result.reason ?? "", /at most 64/);
 });
+
+test("rejects fractional action costs", () => {
+  assert.throws(
+    () =>
+      selectAcquisitionPlan([
+        unresolved("r1", [
+          option("fractional", [action("fractional", 0.5)]),
+        ]),
+      ]),
+    /cost must be between/,
+  );
+});

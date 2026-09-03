@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0 - 2026-09-03
+
+- Added language-neutral protocol, canonicalization, and conformance
+  specifications with committed golden vectors.
+- Defined package-independent engine versioning for cross-language
+  implementations.
+- Rejected invalid Unicode scalar sequences and restricted array value paths to
+  canonical non-negative indices.
+- Defined acquisition costs as bounded integer units with deterministic
+  metadata-cost rounding.
+
 ## 0.1.0 - 2026-09-02
 
 - Added deterministic decision-contract verification with exact dependency,

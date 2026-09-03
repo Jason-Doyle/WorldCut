@@ -226,7 +226,7 @@ actions inside an option are conjunctive; separate options are alternatives.
 The bounded planner selects one option per unresolved requirement and minimizes
 the cost of the deduplicated action union. It returns an incomplete plan rather
 than planning more than 64 unresolved requirements, exploring more than 65,536
-option combinations, or visiting more than 1,000,000 search states.
+option combinations, or visiting more than 4,259,840 search states.
 
 This is an acquisition plan, not a guaranteed repair plan. Refreshing a
 resource may reproduce the same mismatch, and a derived result may require

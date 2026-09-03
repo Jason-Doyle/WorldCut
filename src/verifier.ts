@@ -25,7 +25,7 @@ import type {
   WitnessProvenance,
 } from "./types.js";
 
-const ENGINE_VERSION = "0.1.0";
+const ENGINE_VERSION = "0.1.2";
 const PROVENANCE_VALUES = new Set<WitnessProvenance>([
   "provider_asserted",
   "client_observed",
@@ -111,7 +111,7 @@ function intervalJson(
 }
 
 function requireNonEmpty(value: string, field: string): void {
-  if (typeof value !== "string" || value.trim().length === 0) {
+  if (typeof value !== "string" || value.length === 0) {
     throw new TypeError(`${field} must not be empty`);
   }
 }
@@ -280,6 +280,7 @@ function validateInput(input: unknown): VerificationInput {
     }
     if (
       !Number.isFinite(observation.acquisitionCost) ||
+      !Number.isSafeInteger(observation.acquisitionCost) ||
       observation.acquisitionCost < 0 ||
       observation.acquisitionCost > MAX_ACQUISITION_COST
     ) {
@@ -539,6 +540,25 @@ function valueAtPath(
 ): { found: boolean; value: JsonValue | null } {
   let current: JsonValue = value;
   for (const segment of path) {
+    if (Array.isArray(current)) {
+      if (!/^(0|[1-9][0-9]*)$/.test(segment)) {
+        return { found: false, value: null };
+      }
+      const index = Number(segment);
+      if (
+        !Number.isSafeInteger(index) ||
+        index >= current.length ||
+        !Object.hasOwn(current, index)
+      ) {
+        return { found: false, value: null };
+      }
+      const next = current[index];
+      if (next === undefined) {
+        return { found: false, value: null };
+      }
+      current = next;
+      continue;
+    }
     if (
       current === null ||
       typeof current !== "object" ||
@@ -566,9 +586,10 @@ function acquisitionAction(
     observation === null
       ? 1
       : type === "FETCH_REQUIRED_METADATA"
-        ? Math.max(0.25, observation.acquisitionCost * 0.25)
+        ? Math.max(1, Math.ceil(observation.acquisitionCost / 4))
         : observation.acquisitionCost;
-  const expectedDigest = expected ? sha256Digest(expected).slice(0, 12) : "none";
+  const expectedDigest =
+    expected === null ? "none" : sha256Digest(expected).slice(0, 12);
   return {
     id: `${type.toLowerCase()}:${role}:${expectedDigest}`,
     type,

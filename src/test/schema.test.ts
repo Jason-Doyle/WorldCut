@@ -138,6 +138,12 @@ test("schema rejects protocol, enum, timestamp, and cost violations", () => {
   costlyObservation.acquisitionCost = 1_000_000_001;
   cases.push(excessiveCost);
 
+  const fractionalCost = structuredClone(input);
+  const fractionalObservation = fractionalCost.observations[0];
+  assert.ok(fractionalObservation);
+  fractionalObservation.acquisitionCost = 1.2;
+  cases.push(fractionalCost);
+
   for (const invalid of cases) {
     assert.equal(validateInputSchema(invalid), false);
   }

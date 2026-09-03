@@ -54,6 +54,13 @@ try {
     "docs/INTEGRATIONS.md",
     "docs/AGENTIC_DATA_KERNEL.md",
     "docs/VALIDATION.md",
+    "spec/0.1/PROTOCOL.md",
+    "spec/0.1/CANONICALIZATION.md",
+    "spec/0.1/CONFORMANCE.md",
+    "spec/0.1/RESULTS.md",
+    "conformance/0.1/manifest.json",
+    "conformance/0.1/raw-vectors.json",
+    "conformance/0.1/raw/unpaired-high-surrogate.json",
     "README.md",
     "LICENSE",
   ]) {
