@@ -82,6 +82,67 @@ jobs:
       - run: go test -race ./...
       - run: go vet ./...
 
+  python:
+    name: Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
+    defaults:
+      run:
+        working-directory: ports/python
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: ports/python/pyproject.toml
+      - run: python -m pip install ".[dev]"
+      - run: ruff format --check .
+      - run: ruff check .
+      - run: mypy src
+      - run: pytest
+
+  python-package:
+    name: Python package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ports/python
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ports/python/pyproject.toml
+      - run: python -m pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
+      - name: Test wheel installation
+        run: |
+          python -m venv .wheel-venv
+          .wheel-venv/bin/python -m pip install dist/*.whl
+          .wheel-venv/bin/python -c "from importlib.resources import files; import worldcut; assert files('worldcut').joinpath('py.typed').is_file(); assert worldcut.ENGINE_VERSION == '0.1.2'"
+          .wheel-venv/bin/worldcut-py --help
+          .wheel-venv/bin/worldcut-py ../../examples/coherent-deployment.json
+      - name: Test source distribution independently
+        run: |
+          mkdir .sdist-test
+          tar -xzf dist/*.tar.gz -C .sdist-test --strip-components=1
+          python -m venv .sdist-venv
+          .sdist-venv/bin/python -m pip install "./.sdist-test[dev]"
+          cd .sdist-test
+          ../.sdist-venv/bin/pytest
+
   required:
     name: Required checks
     if: always()
@@ -89,6 +150,8 @@ jobs:
       - node
       - benchmark
       - go
+      - python
+      - python-package
     runs-on: ubuntu-latest
     steps:
       - name: Require successful CI
@@ -96,7 +159,11 @@ jobs:
           NODE_RESULT: ${{ needs.node.result }}
           BENCHMARK_RESULT: ${{ needs.benchmark.result }}
           GO_RESULT: ${{ needs.go.result }}
+          PYTHON_RESULT: ${{ needs.python.result }}
+          PYTHON_PACKAGE_RESULT: ${{ needs.python-package.result }}
         run: |
           test "$NODE_RESULT" = "success"
           test "$BENCHMARK_RESULT" = "success"
           test "$GO_RESULT" = "success"
+          test "$PYTHON_RESULT" = "success"
+          test "$PYTHON_PACKAGE_RESULT" = "success"

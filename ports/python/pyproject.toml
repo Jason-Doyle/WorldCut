@@ -1,0 +1,70 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "worldcut"
+version = "0.1.0"
+description = "Independent Python verifier for the WorldCut decision-coherence protocol"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [{ name = "Jason Doyle" }]
+keywords = ["consistency", "distributed-systems", "provenance", "verification"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Typing :: Typed",
+]
+dependencies = ["rfc8785==0.1.4"]
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2.2",
+  "hypothesis>=6.130",
+  "mypy>=1.15",
+  "pytest>=8.3",
+  "ruff>=0.11",
+  "twine>=6.1",
+]
+
+[project.scripts]
+worldcut-py = "worldcut.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Jason-Doyle/WorldCut"
+Issues = "https://github.com/Jason-Doyle/WorldCut/issues"
+Repository = "https://github.com/Jason-Doyle/WorldCut"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/worldcut"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src/worldcut",
+  "/tests",
+  "/README.md",
+  "/pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "RUF", "SIM", "UP"]

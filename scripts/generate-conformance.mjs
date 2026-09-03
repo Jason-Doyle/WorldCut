@@ -13,6 +13,7 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outputDirectory = join(projectRoot, "conformance", "0.1");
 const mirrorDirectories = [
   join(projectRoot, "ports", "go", "testdata", "conformance", "0.1"),
+  join(projectRoot, "ports", "python", "tests", "data", "conformance", "0.1"),
 ];
 const writeMode = process.argv.includes("--write");
 

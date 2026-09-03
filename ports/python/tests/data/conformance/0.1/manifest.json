@@ -1,0 +1,27 @@
+{
+  "protocolVersion": "0.1",
+  "engineVersion": "0.1.2",
+  "canonicalization": "worldcut-json-v1",
+  "files": {
+    "verification-vectors.json": {
+      "sha256": "db6771b0bc3953dd74f0020ecabe72317a8a82879094c9ac1bc53f059e42e326",
+      "cases": 15
+    },
+    "invalid-vectors.json": {
+      "sha256": "cb91d4844e5405cf886427b0c7d42dfef9c09b82006991f65d6d6489cdda7bac",
+      "cases": 12
+    },
+    "canonicalization-vectors.json": {
+      "sha256": "bc63e52e23eb8d5e6d99142204158395098b0200d1e9f32a19a4755de2903987",
+      "cases": 5
+    },
+    "raw-vectors.json": {
+      "sha256": "b982317915adfe95761f889500fd553220edee5fe5205ed77dffa74e483e8e60",
+      "cases": 1
+    },
+    "raw/unpaired-high-surrogate.json": {
+      "sha256": "832c9023d610d289d60ef5a3c7d14f2bdff1a29d24bef0b7683c24efae1e4d23",
+      "bytes": 3635
+    }
+  }
+}
