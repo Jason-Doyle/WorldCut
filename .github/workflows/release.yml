@@ -126,12 +126,13 @@ jobs:
             echo "worldcut@$VERSION is already published with the expected artifact"
             exit 0
           fi
-          env \
-            GITHUB_REF="refs/tags/$RELEASE_TAG" \
-            GITHUB_SHA="$TAGGED_SHA" \
-            npm publish "./release-artifacts/$PACKAGE_FILE" \
-              --access public \
-              --provenance
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "::error::An unpublished version must be published by its tag push so npm provenance uses the real tag event."
+            exit 1
+          fi
+          npm publish "./release-artifacts/$PACKAGE_FILE" \
+            --access public \
+            --provenance
 
   github:
     name: Create GitHub release
