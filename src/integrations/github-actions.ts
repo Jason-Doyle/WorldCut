@@ -133,6 +133,21 @@ function validateOptions(options: VerifyGitHubWorkflowOptions): void {
   }
 }
 
+function normalizeApiBaseUrl(value: string): string {
+  let end = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === 47) {
+    end -= 1;
+  }
+  const normalized = value.slice(0, end);
+  if (normalized.length === 0) {
+    throw new WorldCutIntegrationError(
+      "WORLDCUT_GITHUB_RESPONSE_INVALID",
+      "apiBaseUrl must not be empty",
+    );
+  }
+  return normalized;
+}
+
 async function githubJson(
   fetchImplementation: typeof fetch,
   url: string,
@@ -225,9 +240,8 @@ export async function verifyLatestGitHubWorkflow(
 ): Promise<GitHubWorkflowVerification> {
   validateOptions(options);
   const fetchImplementation = options.fetchImplementation ?? fetch;
-  const apiBaseUrl = (options.apiBaseUrl ?? "https://api.github.com").replace(
-    /\/+$/,
-    "",
+  const apiBaseUrl = normalizeApiBaseUrl(
+    options.apiBaseUrl ?? "https://api.github.com",
   );
   const [owner, repositoryName] = options.repository.split("/");
   if (!owner || !repositoryName) {
@@ -398,9 +412,8 @@ export async function inspectGitHubWorkflowEvidence(
     );
   }
   const fetchImplementation = options.fetchImplementation ?? fetch;
-  const apiBaseUrl = (options.apiBaseUrl ?? "https://api.github.com").replace(
-    /\/+$/,
-    "",
+  const apiBaseUrl = normalizeApiBaseUrl(
+    options.apiBaseUrl ?? "https://api.github.com",
   );
   const [owner, repositoryName] = options.repository.split("/");
   if (!owner || !repositoryName) {
