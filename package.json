@@ -1,0 +1,45 @@
+{
+  "name": "worldcut",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Verify cross-service observations against explicit version and temporal decision constraints.",
+  "license": "Apache-2.0",
+  "author": "Jason Doyle",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jason-Doyle/WorldCut.git"
+  },
+  "homepage": "https://github.com/Jason-Doyle/WorldCut#readme",
+  "bugs": {
+    "url": "https://github.com/Jason-Doyle/WorldCut/issues"
+  },
+  "keywords": [
+    "agents",
+    "consistency",
+    "distributed-systems",
+    "provenance",
+    "typescript"
+  ],
+  "packageManager": "npm@10.9.7",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test \"dist/test/*.test.js\"",
+    "example": "npm run build && node dist/examples/deployment.js",
+    "benchmark": "npm run build && node dist/benchmark/run.js",
+    "feasibility": "npm run build && node dist/feasibility/run.js",
+    "check": "npm run build && node --test \"dist/test/*.test.js\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,10 @@
+/node_modules/
+/dist/
+/benchmark/
+
+/.env
+/.env.*
+*.log
+
+.DS_Store
+Thumbs.db
