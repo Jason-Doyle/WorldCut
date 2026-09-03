@@ -5,6 +5,7 @@ import type {
   Observation,
   VerificationInput,
 } from "./types.js";
+import { canonicalJson } from "./canonical.js";
 import { sameResourceIdentity } from "./resource.js";
 
 function requiredRequirements(
@@ -36,10 +37,12 @@ function rolesForContract(input: VerificationInput): Set<string> {
     if (requirement.type === "dependency") {
       roles.add(requirement.dependentRole);
       roles.add(requirement.targetRole);
-    } else {
+    } else if (requirement.type === "common_valid_time") {
       for (const role of requirement.roles) {
         roles.add(role);
       }
+    } else {
+      roles.add(requirement.role);
     }
   }
   return roles;
@@ -188,6 +191,41 @@ export function explicitContractBaseline(
       if (
         !sameResourceIdentity(dependency.resource, target.resource) ||
         dependency.version !== target.witness.version
+      ) {
+        violated += 1;
+      }
+      continue;
+    }
+
+    if (requirement.type === "value_equals") {
+      const observation = byRole.get(requirement.role);
+      if (!observation) {
+        unknown += 1;
+        continue;
+      }
+      let current = observation.value;
+      let found = true;
+      for (const segment of requirement.path) {
+        if (
+          current === null ||
+          typeof current !== "object" ||
+          !Object.hasOwn(current, segment)
+        ) {
+          found = false;
+          break;
+        }
+        const next = (current as Record<string, typeof current>)[segment];
+        if (next === undefined) {
+          found = false;
+          break;
+        }
+        current = next;
+      }
+      checked += 1;
+      if (!found) {
+        unknown += 1;
+      } else if (
+        canonicalJson(current) !== canonicalJson(requirement.expected)
       ) {
         violated += 1;
       }

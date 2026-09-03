@@ -5,6 +5,8 @@ Describe the problem and the behavior changed.
 ## Verification
 
 - [ ] `npm run check`
+- [ ] `npm test`
+- [ ] `npm run test:package` when package exports or files changed
 - [ ] `npm run benchmark` when verification semantics or baselines changed
 
 ## Protocol impact

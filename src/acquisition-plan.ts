@@ -1,4 +1,9 @@
 import { compareCanonicalText } from "./canonical.js";
+import { WorldCutInputError } from "./errors.js";
+import {
+  MAX_ACQUISITION_COST,
+  MAX_PLAN_TOTAL_COST,
+} from "./limits.js";
 import type {
   AcquisitionAction,
   AcquisitionOption,
@@ -55,6 +60,15 @@ function addOption(
   let cost = state.cost;
 
   for (const action of option.actions) {
+    if (
+      !Number.isFinite(action.cost) ||
+      action.cost < 0 ||
+      action.cost > MAX_ACQUISITION_COST
+    ) {
+      throw new WorldCutInputError(
+        `Acquisition action ${action.id} cost must be between 0 and ${MAX_ACQUISITION_COST}`,
+      );
+    }
     const existing = actions.get(action.id);
     if (existing && existing.cost !== action.cost) {
       throw new Error(
@@ -63,6 +77,11 @@ function addOption(
     }
     if (!existing) {
       actions.set(action.id, action);
+      if (cost > MAX_PLAN_TOTAL_COST - action.cost) {
+        throw new WorldCutInputError(
+          `Acquisition plan cost exceeds ${MAX_PLAN_TOTAL_COST}`,
+        );
+      }
       cost += action.cost;
     }
   }

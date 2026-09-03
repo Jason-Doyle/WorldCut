@@ -1,0 +1,2 @@
+export const MAX_ACQUISITION_COST = 1_000_000_000;
+export const MAX_PLAN_TOTAL_COST = 64_000_000_000;

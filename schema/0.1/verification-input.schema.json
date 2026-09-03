@@ -1,0 +1,397 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Jason-Doyle/WorldCut/v0.1.0/schema/0.1/verification-input.schema.json",
+  "title": "WorldCut verification input 0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocolVersion",
+    "contract",
+    "observations"
+  ],
+  "properties": {
+    "protocolVersion": {
+      "const": "0.1"
+    },
+    "contract": {
+      "$ref": "#/$defs/contract"
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/observation"
+      }
+    }
+  },
+  "$defs": {
+    "normalizedTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$"
+    },
+    "jsonValue": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        }
+      ]
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "account",
+        "kind",
+        "key"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "account": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "validity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "until"
+      ],
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/normalizedTimestamp"
+        },
+        "until": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/normalizedTimestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "provenance": {
+      "enum": [
+        "provider_asserted",
+        "client_observed",
+        "derived",
+        "operator_supplied"
+      ]
+    },
+    "dependencyWitness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "resource",
+        "relation",
+        "provenance"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource": {
+          "$ref": "#/$defs/resource"
+        },
+        "relation": {
+          "const": "exact"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      }
+    },
+    "witness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provenance"
+      ],
+      "properties": {
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validity": {
+          "$ref": "#/$defs/validity"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dependencyWitness"
+          }
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "role",
+        "resource",
+        "value",
+        "observedAt",
+        "acquisitionCost",
+        "witness"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource": {
+          "$ref": "#/$defs/resource"
+        },
+        "value": {
+          "$ref": "#/$defs/jsonValue"
+        },
+        "observedAt": {
+          "$ref": "#/$defs/normalizedTimestamp"
+        },
+        "acquisitionCost": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "witness": {
+          "$ref": "#/$defs/witness"
+        }
+      }
+    },
+    "dependencyRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "type",
+        "dependentRole",
+        "targetRole",
+        "dependencyName"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "type": {
+          "const": "dependency"
+        },
+        "dependentRole": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetRole": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dependencyName": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "commonValidTimeRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "type",
+        "roles",
+        "within"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "type": {
+          "const": "common_valid_time"
+        },
+        "roles": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "within": {
+          "$ref": "#/$defs/validity"
+        }
+      }
+    },
+    "valueEqualsRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "type",
+        "role",
+        "path",
+        "expected"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "type": {
+          "const": "value_equals"
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "expected": {
+          "$ref": "#/$defs/jsonValue"
+        }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "decisionTime",
+        "assumptions",
+        "requirements"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decisionTime": {
+          "$ref": "#/$defs/normalizedTimestamp"
+        },
+        "assumptions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "clockModel",
+            "intervalModel",
+            "metadataModel"
+          ],
+          "properties": {
+            "clockModel": {
+              "const": "trusted_normalized"
+            },
+            "intervalModel": {
+              "const": "half_open"
+            },
+            "metadataModel": {
+              "const": "honest_but_possibly_incomplete"
+            }
+          }
+        },
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/dependencyRequirement"
+              },
+              {
+                "$ref": "#/$defs/commonValidTimeRequirement"
+              },
+              {
+                "$ref": "#/$defs/valueEqualsRequirement"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

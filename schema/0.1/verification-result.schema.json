@@ -1,0 +1,295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Jason-Doyle/WorldCut/v0.1.0/schema/0.1/verification-result.schema.json",
+  "title": "WorldCut verification result 0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocolVersion",
+    "engineVersion",
+    "canonicalization",
+    "contractId",
+    "contractVersion",
+    "verdict",
+    "coverage",
+    "requirementResults",
+    "acquisitionPlan",
+    "verificationRecordDigest"
+  ],
+  "properties": {
+    "protocolVersion": {
+      "const": "0.1"
+    },
+    "engineVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$"
+    },
+    "canonicalization": {
+      "const": "worldcut-json-v1"
+    },
+    "contractId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contractVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verdict": {
+      "enum": [
+        "CONTRACT_SATISFIED",
+        "CONTRACT_VIOLATED",
+        "INSUFFICIENT_EVIDENCE"
+      ]
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "satisfied",
+        "violated",
+        "unknown",
+        "advisory"
+      ],
+      "properties": {
+        "required": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "satisfied": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "violated": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unknown": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "advisory": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "requirementResults": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirementResult"
+      }
+    },
+    "acquisitionPlan": {
+      "$ref": "#/$defs/acquisitionPlan"
+    },
+    "verificationRecordDigest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "$defs": {
+    "jsonValue": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        }
+      ]
+    },
+    "acquisitionAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "role",
+        "cost",
+        "description",
+        "expected"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "REFRESH_OBSERVATION",
+            "FETCH_REQUIRED_METADATA",
+            "ACQUIRE_COMPATIBLE_EVIDENCE"
+          ]
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cost": {
+          "type": "number",
+          "minimum": 0
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected": {
+          "$ref": "#/$defs/jsonValue"
+        }
+      }
+    },
+    "acquisitionOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "actions"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/acquisitionAction"
+          }
+        }
+      }
+    },
+    "requirementResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirementId",
+        "requirementType",
+        "required",
+        "status",
+        "summary",
+        "details",
+        "acquisitionOptions"
+      ],
+      "properties": {
+        "requirementId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requirementType": {
+          "enum": [
+            "dependency",
+            "common_valid_time",
+            "value_equals"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "SATISFIED",
+            "VIOLATED",
+            "UNKNOWN"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "details": {
+          "$ref": "#/$defs/jsonValue"
+        },
+        "acquisitionOptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/acquisitionOption"
+          }
+        }
+      }
+    },
+    "acquisitionPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reason",
+        "actions",
+        "selectedOptionIds",
+        "totalCost",
+        "coveredRequirementIds",
+        "unresolvedRequirementIds"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "NOT_NEEDED",
+            "AVAILABLE",
+            "INCOMPLETE"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/acquisitionAction"
+          }
+        },
+        "selectedOptionIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "totalCost": {
+          "type": "number",
+          "minimum": 0
+        },
+        "coveredRequirementIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "unresolvedRequirementIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

@@ -16,6 +16,7 @@ import type {
   Observation,
   VerificationInput,
 } from "../types.js";
+import { WorldCutInputError } from "../errors.js";
 import { verifyDecisionContract } from "../verifier.js";
 
 test("satisfies a decision contract when required evidence is bound correctly", () => {
@@ -40,6 +41,62 @@ test("verification engine version matches the package release", () => {
   const result = verifyDecisionContract(coherentDeploymentScenario().input);
 
   assert.equal(result.engineVersion, packageJson.version);
+});
+
+test("checks required values without model interpretation", () => {
+  const scenario = coherentDeploymentScenario();
+  const satisfiedInput: VerificationInput = {
+    ...scenario.input,
+    contract: {
+      ...scenario.input.contract,
+      requirements: [
+        ...scenario.input.contract.requirements,
+        {
+          id: "ci-passed",
+          type: "value_equals",
+          description: "The CI conclusion is successful",
+          role: "ci",
+          path: ["status"],
+          expected: "passed",
+        },
+      ],
+    },
+  };
+  const satisfied = verifyDecisionContract(satisfiedInput);
+  assert.equal(satisfied.verdict, "CONTRACT_SATISFIED");
+
+  const violatedInput = structuredClone(satisfiedInput);
+  const valueRequirement = violatedInput.contract.requirements.find(
+    (requirement) => requirement.type === "value_equals",
+  );
+  assert.ok(valueRequirement?.type === "value_equals");
+  valueRequirement.expected = "failed";
+  const violated = verifyDecisionContract(violatedInput);
+  assert.equal(violated.verdict, "CONTRACT_VIOLATED");
+
+  const unknownInput = structuredClone(satisfiedInput);
+  const unknownRequirement = unknownInput.contract.requirements.find(
+    (requirement) => requirement.type === "value_equals",
+  );
+  assert.ok(unknownRequirement?.type === "value_equals");
+  unknownRequirement.path = ["missing"];
+  const unknown = verifyDecisionContract(unknownInput);
+  assert.equal(unknown.verdict, "INSUFFICIENT_EVIDENCE");
+});
+
+test("rejects unsupported protocol versions with a structured input error", () => {
+  const input = structuredClone(
+    coherentDeploymentScenario().input,
+  ) as unknown as VerificationInput;
+  (input as unknown as { protocolVersion: string }).protocolVersion = "9";
+
+  assert.throws(
+    () => verifyDecisionContract(input),
+    (error: unknown) =>
+      error instanceof WorldCutInputError &&
+      error.code === "WORLDCUT_INVALID_INPUT" &&
+      /protocolVersion/.test(error.message),
+  );
 });
 
 test("reports a requirement violation rather than claiming raw facts conflict", () => {
@@ -85,6 +142,7 @@ test("acquisition plan fetches every conjunctive missing version", () => {
     },
   );
   const input: VerificationInput = {
+    protocolVersion: "0.1",
     contract: scenario.input.contract,
     observations: [
       {
@@ -126,6 +184,7 @@ test("detects fresh observations whose scoped validity intervals never overlap",
 test("advisory unknown requirements do not weaken authorization semantics", () => {
   const scenario = coherentDeploymentScenario();
   const input: VerificationInput = {
+    protocolVersion: "0.1",
     observations: scenario.input.observations,
     contract: {
       ...scenario.input.contract,
@@ -161,6 +220,7 @@ test("verification record digest is independent of input array ordering", () => 
   const scenario = mismatchedDeploymentScenario();
   const first = verifyDecisionContract(scenario.input);
   const second = verifyDecisionContract({
+    protocolVersion: "0.1",
     contract: {
       ...scenario.input.contract,
       requirements: [...scenario.input.contract.requirements].reverse(),
@@ -183,6 +243,7 @@ test("rejects ambiguous role bindings", () => {
   assert.throws(
     () =>
       verifyDecisionContract({
+        protocolVersion: "0.1",
         contract: scenario.input.contract,
         observations: [...scenario.input.observations, duplicated],
       }),
@@ -280,6 +341,7 @@ test("rejects duplicate temporal roles, future evidence, and empty authorization
   assert.throws(
     () =>
       verifyDecisionContract({
+        protocolVersion: "0.1",
         contract: emptyContract,
         observations: coherent.input.observations,
       }),

@@ -1,0 +1,40 @@
+name: Deploy verified main
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    branches:
+      - main
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  gate:
+    if: github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22.19.0
+
+      - name: Install WorldCut
+        run: npm install --global worldcut@0.1.0
+
+      - name: Verify latest completed CI run
+        id: worldcut
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          worldcut-github-ci \
+            --repository "$GITHUB_REPOSITORY" \
+            --branch main \
+            --workflow ci.yml
+
+      - name: Deploy the immutable verified revision
+        run: |
+          echo "Deploy exactly ${{ steps.worldcut.outputs.verified_sha }}"

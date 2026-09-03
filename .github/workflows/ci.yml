@@ -9,34 +9,64 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
-    name: Test (${{ matrix.os }})
+  node:
+    name: Node ${{ matrix.node }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         os:
           - ubuntu-latest
           - windows-latest
-
+        node:
+          - 22.19.0
+          - 24
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: 22.22.0
+          node-version: ${{ matrix.node }}
           cache: npm
+      - name: Use supported npm
+        run: npm install --global npm@10.9.7
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run test:package
 
-      - name: Install dependencies
-        run: npm ci
+  benchmark:
+    name: Benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22.19.0
+          cache: npm
+      - name: Use supported npm
+        run: npm install --global npm@10.9.7
+      - run: npm ci
+      - run: npm run benchmark
 
-      - name: Build and test
-        run: npm run check
-
-      - name: Run full benchmark
-        if: runner.os == 'Linux'
-        run: npm run benchmark
+  required:
+    name: Required checks
+    if: always()
+    needs:
+      - node
+      - benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require successful CI
+        env:
+          NODE_RESULT: ${{ needs.node.result }}
+          BENCHMARK_RESULT: ${{ needs.benchmark.result }}
+        run: |
+          test "$NODE_RESULT" = "success"
+          test "$BENCHMARK_RESULT" = "success"

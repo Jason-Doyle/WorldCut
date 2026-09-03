@@ -1,10 +1,13 @@
 import { selectAcquisitionPlan } from "./acquisition-plan.js";
 import {
+  canonicalJson,
   compareCanonicalText,
   sha256Digest,
   snapshotJsonData,
 } from "./canonical.js";
 import { sameResourceIdentity } from "./resource.js";
+import { WorldCutInputError } from "./errors.js";
+import { MAX_ACQUISITION_COST } from "./limits.js";
 import type {
   AcquisitionAction,
   AcquisitionOption,
@@ -18,6 +21,7 @@ import type {
   ResourceIdentity,
   VerificationInput,
   VerificationResult,
+  ValueEqualsRequirement,
   WitnessProvenance,
 } from "./types.js";
 
@@ -146,11 +150,22 @@ function validateInterval(
   }
 }
 
-function validateInput(input: VerificationInput): VerificationInput {
+function validateInput(input: unknown): VerificationInput {
   const snapshot = snapshotJsonData(input, "input") as VerificationInput;
   const inputRecord = requireRecord(snapshot, "input");
-  assertExactKeys(inputRecord, ["contract", "observations"], "input");
-  assertRequiredKeys(inputRecord, ["contract", "observations"], "input");
+  assertExactKeys(
+    inputRecord,
+    ["protocolVersion", "contract", "observations"],
+    "input",
+  );
+  assertRequiredKeys(
+    inputRecord,
+    ["protocolVersion", "contract", "observations"],
+    "input",
+  );
+  if (snapshot.protocolVersion !== "0.1") {
+    throw new TypeError("input.protocolVersion must equal 0.1");
+  }
   const contractRecord = requireRecord(snapshot.contract, "contract");
   assertExactKeys(
     contractRecord,
@@ -265,10 +280,11 @@ function validateInput(input: VerificationInput): VerificationInput {
     }
     if (
       !Number.isFinite(observation.acquisitionCost) ||
-      observation.acquisitionCost < 0
+      observation.acquisitionCost < 0 ||
+      observation.acquisitionCost > MAX_ACQUISITION_COST
     ) {
       throw new RangeError(
-        `${observation.role}.acquisitionCost must be non-negative`,
+        `${observation.role}.acquisitionCost must be between 0 and ${MAX_ACQUISITION_COST}`,
       );
     }
     validateProvenance(
@@ -480,6 +496,32 @@ function validateInput(input: VerificationInput): VerificationInput {
       );
       continue;
     }
+    if (runtimeType === "value_equals") {
+      assertExactKeys(
+        requirementRecord,
+        ["id", "description", "required", "type", "role", "path", "expected"],
+        requirement.id,
+      );
+      assertRequiredKeys(
+        requirementRecord,
+        ["role", "path", "expected"],
+        requirement.id,
+      );
+      const valueRequirement = requirement as ValueEqualsRequirement;
+      requireNonEmpty(valueRequirement.role, `${requirement.id}.role`);
+      if (!Array.isArray(valueRequirement.path)) {
+        throw new TypeError(`${requirement.id}.path must be an array`);
+      }
+      if (valueRequirement.path.length === 0) {
+        throw new RangeError(
+          `${requirement.id}.path must contain at least one segment`,
+        );
+      }
+      for (const segment of valueRequirement.path) {
+        requireNonEmpty(segment, `${requirement.id}.path segment`);
+      }
+      continue;
+    }
     throw new TypeError(`Unsupported requirement type: ${String(runtimeType)}`);
   }
 
@@ -489,6 +531,28 @@ function validateInput(input: VerificationInput): VerificationInput {
     );
   }
   return snapshot;
+}
+
+function valueAtPath(
+  value: JsonValue,
+  path: string[],
+): { found: boolean; value: JsonValue | null } {
+  let current: JsonValue = value;
+  for (const segment of path) {
+    if (
+      current === null ||
+      typeof current !== "object" ||
+      !Object.hasOwn(current, segment)
+    ) {
+      return { found: false, value: null };
+    }
+    const next = (current as Record<string, JsonValue>)[segment];
+    if (next === undefined) {
+      return { found: false, value: null };
+    }
+    current = next;
+  }
+  return { found: true, value: current };
 }
 
 function acquisitionAction(
@@ -823,6 +887,7 @@ function evaluateCommonValidTime(
     if (!validity) {
       continue;
     }
+
     latestStart = Math.max(
       latestStart,
       parseTimestamp(validity.from, `${observation.role}.validity.from`),
@@ -927,6 +992,97 @@ function evaluateCommonValidTime(
   };
 }
 
+function evaluateValueEquals(
+  requirement: ValueEqualsRequirement,
+  observationsByRole: Map<string, Observation>,
+): RequirementResult {
+  const observation = observationsByRole.get(requirement.role);
+  if (!observation) {
+    return missingRolesResult(requirement, [requirement.role]);
+  }
+  const actual = valueAtPath(observation.value, requirement.path);
+  if (!actual.found) {
+    return {
+      requirementId: requirement.id,
+      requirementType: requirement.type,
+      required: requirement.required !== false,
+      status: "UNKNOWN",
+      summary: `${requirement.description}: value path ${requirement.path.join(".")} is missing.`,
+      details: {
+        role: requirement.role,
+        path: requirement.path,
+        expected: requirement.expected,
+      },
+      acquisitionOptions: [
+        acquisitionOption(
+          requirement.id,
+          "acquire-value",
+          "Acquire evidence containing the required value path.",
+          [
+            acquisitionAction(
+              "ACQUIRE_COMPATIBLE_EVIDENCE",
+              observation,
+              observation.role,
+              `Acquire ${observation.role} evidence containing ${requirement.path.join(".")}.`,
+              {
+                path: requirement.path,
+                expected: requirement.expected,
+              },
+            ),
+          ],
+        ),
+      ],
+    };
+  }
+  if (canonicalJson(actual.value) !== canonicalJson(requirement.expected)) {
+    return {
+      requirementId: requirement.id,
+      requirementType: requirement.type,
+      required: requirement.required !== false,
+      status: "VIOLATED",
+      summary: `${requirement.description}: observed value does not equal the required value.`,
+      details: {
+        role: requirement.role,
+        path: requirement.path,
+        expected: requirement.expected,
+        actual: actual.value,
+      },
+      acquisitionOptions: [
+        acquisitionOption(
+          requirement.id,
+          "refresh-value",
+          "Refresh the observation before evaluating the value again.",
+          [
+            acquisitionAction(
+              "REFRESH_OBSERVATION",
+              observation,
+              observation.role,
+              `Refresh ${observation.role} before evaluating ${requirement.path.join(".")}.`,
+              {
+                path: requirement.path,
+                expected: requirement.expected,
+              },
+            ),
+          ],
+        ),
+      ],
+    };
+  }
+  return {
+    requirementId: requirement.id,
+    requirementType: requirement.type,
+    required: requirement.required !== false,
+    status: "SATISFIED",
+    summary: `${requirement.description}: observed value matches the requirement.`,
+    details: {
+      role: requirement.role,
+      path: requirement.path,
+      expected: requirement.expected,
+    },
+    acquisitionOptions: [],
+  };
+}
+
 function normalizedContract(contract: CoherenceContract): CoherenceContract {
   return {
     ...contract,
@@ -936,10 +1092,19 @@ function normalizedContract(contract: CoherenceContract): CoherenceContract {
   };
 }
 
-export function verifyDecisionContract(
-  input: VerificationInput,
-): VerificationResult {
-  const safeInput = validateInput(input);
+export function verifyDecisionContract(input: unknown): VerificationResult {
+  let safeInput: VerificationInput;
+  try {
+    safeInput = validateInput(input);
+  } catch (error) {
+    if (error instanceof WorldCutInputError) {
+      throw error;
+    }
+    if (error instanceof TypeError || error instanceof RangeError) {
+      throw new WorldCutInputError(error.message, { cause: error });
+    }
+    throw error;
+  }
   const observationsByRole = new Map(
     safeInput.observations.map((observation) => [
       observation.role,
@@ -954,6 +1119,9 @@ export function verifyDecisionContract(
       }
       if (requirement.type === "common_valid_time") {
         return evaluateCommonValidTime(requirement, observationsByRole);
+      }
+      if (requirement.type === "value_equals") {
+        return evaluateValueEquals(requirement, observationsByRole);
       }
       throw new TypeError(
         `Unsupported requirement type: ${String((requirement as { type?: unknown }).type)}`,
@@ -977,7 +1145,7 @@ export function verifyDecisionContract(
         : "CONTRACT_SATISFIED";
   const acquisitionPlan = selectAcquisitionPlan(requirementResults);
   const record = {
-    protocolVersion: "0.1",
+    protocolVersion: safeInput.protocolVersion,
     engineVersion: ENGINE_VERSION,
     canonicalization: "worldcut-json-v1",
     contract: normalizedContract(safeInput.contract),
@@ -990,7 +1158,7 @@ export function verifyDecisionContract(
   };
 
   return {
-    protocolVersion: "0.1",
+    protocolVersion: safeInput.protocolVersion,
     engineVersion: ENGINE_VERSION,
     canonicalization: "worldcut-json-v1",
     contractId: safeInput.contract.id,

@@ -1,10 +1,13 @@
 /node_modules/
 /dist/
 /benchmark/
+/release-artifacts/
 
 /.env
 /.env.*
 *.log
+*.tgz
+github-ci-verification.json
 
 .DS_Store
 Thumbs.db

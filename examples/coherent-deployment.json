@@ -1,4 +1,5 @@
 {
+  "protocolVersion": "0.1",
   "contract": {
     "id": "deploy-current-tested-release",
     "version": "1",
@@ -16,6 +17,16 @@
         "dependentRole": "ci",
         "targetRole": "head",
         "dependencyName": "tested_head"
+      },
+      {
+        "id": "ci-status-passed",
+        "type": "value_equals",
+        "description": "The CI status is passed",
+        "role": "ci",
+        "path": [
+          "status"
+        ],
+        "expected": "passed"
       },
       {
         "id": "approval-and-quote-overlap",

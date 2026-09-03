@@ -14,6 +14,7 @@ Requirements:
 ```sh
 npm ci
 npm run check
+npm test
 ```
 
 Run the full simulation when changing verification semantics, baselines, or
@@ -21,6 +22,12 @@ metadata handling:
 
 ```sh
 npm run benchmark
+```
+
+Before proposing a release-affecting change:
+
+```sh
+npm run release:check
 ```
 
 ## Pull requests

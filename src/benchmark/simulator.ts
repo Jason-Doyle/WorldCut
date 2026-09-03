@@ -338,7 +338,11 @@ export function generateSimulationTrials(
     trials.push({
       id: `${config.id}-${index}`,
       caseKind,
-      input: { contract, observations },
+      input: {
+        protocolVersion: "0.1",
+        contract,
+        observations,
+      },
       groundTruthSafe,
       metadataComplete:
         dependencyVisible &&
