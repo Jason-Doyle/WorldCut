@@ -56,18 +56,47 @@ jobs:
       - run: npm ci
       - run: npm run benchmark
 
+  go:
+    name: Go ${{ matrix.go }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        go:
+          - 1.23.x
+          - stable
+    defaults:
+      run:
+        working-directory: ports/go
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ matrix.go }}
+          cache-dependency-path: ports/go/go.sum
+      - name: Check formatting
+        shell: bash
+        run: test -z "$(gofmt -l .)"
+      - run: go test ./...
+      - run: go test -race ./...
+      - run: go vet ./...
+
   required:
     name: Required checks
     if: always()
     needs:
       - node
       - benchmark
+      - go
     runs-on: ubuntu-latest
     steps:
       - name: Require successful CI
         env:
           NODE_RESULT: ${{ needs.node.result }}
           BENCHMARK_RESULT: ${{ needs.benchmark.result }}
+          GO_RESULT: ${{ needs.go.result }}
         run: |
           test "$NODE_RESULT" = "success"
           test "$BENCHMARK_RESULT" = "success"
+          test "$GO_RESULT" = "success"

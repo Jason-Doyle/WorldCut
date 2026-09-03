@@ -11,6 +11,9 @@ import {
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outputDirectory = join(projectRoot, "conformance", "0.1");
+const mirrorDirectories = [
+  join(projectRoot, "ports", "go", "testdata", "conformance", "0.1"),
+];
 const writeMode = process.argv.includes("--write");
 
 function json(value) {
@@ -338,24 +341,26 @@ rendered["manifest.json"] = json(manifest);
 await mkdir(outputDirectory, { recursive: true });
 let mismatched = false;
 for (const [name, contents] of Object.entries(rendered)) {
-  const path = join(outputDirectory, name);
-  if (writeMode) {
-    await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, contents, "utf8");
-    console.log(`wrote ${path}`);
-    continue;
-  }
-  let existing = "";
-  try {
-    existing = await readFile(path, "utf8");
-  } catch {
-    mismatched = true;
-    console.error(`missing ${path}`);
-    continue;
-  }
-  if (existing !== contents) {
-    mismatched = true;
-    console.error(`out of date ${path}`);
+  for (const directory of [outputDirectory, ...mirrorDirectories]) {
+    const path = join(directory, name);
+    if (writeMode) {
+      await mkdir(dirname(path), { recursive: true });
+      await writeFile(path, contents, "utf8");
+      console.log(`wrote ${path}`);
+      continue;
+    }
+    let existing = "";
+    try {
+      existing = await readFile(path, "utf8");
+    } catch {
+      mismatched = true;
+      console.error(`missing ${path}`);
+      continue;
+    }
+    if (existing !== contents) {
+      mismatched = true;
+      console.error(`out of date ${path}`);
+    }
   }
 }
 

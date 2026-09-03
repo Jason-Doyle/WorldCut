@@ -48,6 +48,13 @@ in [`docs/VALIDATION.md`](docs/VALIDATION.md).
 Language-neutral protocol semantics and golden vectors are under
 [`spec/0.1`](spec/0.1) and [`conformance/0.1`](conformance/0.1).
 
+## Implementations
+
+| Port | Protocol / engine | Status |
+| --- | --- | --- |
+| TypeScript | 0.1 / 0.1.2 | Reference package with documented integrations |
+| [Go](ports/go) | 0.1 / 0.1.2 | Independent conformant verifier and CLI; integrations not yet included |
+
 ## Run the examples
 
 ```sh
