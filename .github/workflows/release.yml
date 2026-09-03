@@ -4,15 +4,26 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to publish
+        required: true
+        type: string
 
 concurrency:
   group: release
   cancel-in-progress: false
 
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
 jobs:
   package:
     name: Validate release package
     runs-on: ubuntu-latest
+    outputs:
+      tagged_sha: ${{ steps.release.outputs.tagged_sha }}
     permissions:
       actions: read
       contents: read
@@ -20,6 +31,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22.19.0
@@ -28,18 +40,22 @@ jobs:
         run: npm install --global npm@10.9.7
       - run: npm ci
       - name: Validate release tag
+        id: release
         run: |
           git fetch origin main:refs/remotes/origin/main
-          node scripts/validate-release-tag.mjs "$GITHUB_REF_NAME"
+          node scripts/validate-release-tag.mjs "$RELEASE_TAG"
+          TAGGED_SHA=$(git rev-parse "$RELEASE_TAG^{commit}")
+          echo "tagged_sha=$TAGGED_SHA" >> "$GITHUB_OUTPUT"
       - run: npm run release:check
       - name: Verify release commit passed main CI
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          TAGGED_SHA="${{ steps.release.outputs.tagged_sha }}"
           RUN=$(
             gh api --paginate \
               "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?branch=main&event=push&status=completed&per_page=100" \
-              --jq ".workflow_runs[] | select(.head_sha == \"$GITHUB_SHA\") | [.id,.conclusion,.event,.head_branch,.head_repository.full_name] | @tsv" \
+              --jq ".workflow_runs[] | select(.head_sha == \"$TAGGED_SHA\") | [.id,.conclusion,.event,.head_branch,.head_repository.full_name] | @tsv" \
               | head -n 1
           )
           test -n "$RUN"
@@ -48,7 +64,7 @@ jobs:
           test "$EVENT" = "push"
           test "$BRANCH" = "main"
           test "$REPOSITORY" = "$GITHUB_REPOSITORY"
-          echo "Verified CI run $RUN_ID for $GITHUB_SHA"
+          echo "Verified CI run $RUN_ID for $TAGGED_SHA"
       - name: Create exact release artifact
         run: |
           mkdir release-artifacts
@@ -77,6 +93,8 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.RELEASE_TAG }}
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22.19.0
@@ -91,6 +109,9 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          TAGGED_SHA="${{ needs.package.outputs.tagged_sha }}"
+          CHECKED_OUT_SHA=$(git rev-parse HEAD)
+          test "$CHECKED_OUT_SHA" = "$TAGGED_SHA"
           VERSION=$(node -p "require('./package.json').version")
           PACKAGE_FILE=$(node -e \
             "const p=require('./release-artifacts/pack.json'); process.stdout.write(p[0].filename)")
@@ -105,9 +126,12 @@ jobs:
             echo "worldcut@$VERSION is already published with the expected artifact"
             exit 0
           fi
-          npm publish "release-artifacts/$PACKAGE_FILE" \
-            --access public \
-            --provenance
+          env \
+            GITHUB_REF="refs/tags/$RELEASE_TAG" \
+            GITHUB_SHA="$TAGGED_SHA" \
+            npm publish "./release-artifacts/$PACKAGE_FILE" \
+              --access public \
+              --provenance
 
   github:
     name: Create GitHub release
@@ -124,23 +148,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="${RELEASE_TAG#v}"
           PACKAGE_FILE=$(node -e \
             "const p=require('./release-artifacts/pack.json'); process.stdout.write(p[0].filename)")
-          if gh release view "$GITHUB_REF_NAME" \
+          if gh release view "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" \
+            gh release upload "$RELEASE_TAG" \
               "release-artifacts/$PACKAGE_FILE" \
               release-artifacts/SHA256SUMS \
               --repo "$GITHUB_REPOSITORY" \
               --clobber
-            gh release edit "$GITHUB_REF_NAME" \
+            gh release edit "$RELEASE_TAG" \
               --repo "$GITHUB_REPOSITORY" \
               --draft=false \
               --prerelease=false \
               --latest
           else
-            gh release create "$GITHUB_REF_NAME" \
+            gh release create "$RELEASE_TAG" \
               "release-artifacts/$PACKAGE_FILE" \
               release-artifacts/SHA256SUMS \
               --repo "$GITHUB_REPOSITORY" \
@@ -151,7 +175,7 @@ jobs:
           fi
           rm -rf release-verification
           mkdir release-verification
-          gh release download "$GITHUB_REF_NAME" \
+          gh release download "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --pattern "$PACKAGE_FILE" \
             --pattern SHA256SUMS \
