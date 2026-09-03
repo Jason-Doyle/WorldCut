@@ -70,7 +70,7 @@ sequenceDiagram
     participant W as WorldCut
 
     G-->>A: Current branch head = commit-B
-    C-->>A: PASS; tested head = commit-A
+    C-->>A: PASS, tested head = commit-A
     A->>W: Observations + deployment contract
     W-->>A: CONTRACT_VIOLATED<br/>commit-A != commit-B
     A--xG: Deployment is not authorized
