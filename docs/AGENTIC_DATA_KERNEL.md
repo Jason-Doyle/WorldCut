@@ -1,7 +1,9 @@
 # Agentic Data Kernel integration
 
 WorldCut can consume resolved Agentic Data Kernel assertions without taking a
-runtime dependency on the kernel package.
+runtime dependency on the kernel package. The adapter is available in
+TypeScript (`observationFromAgenticDataResolution`) and Go
+(`agenticdatakernel.ObservationFromResolution`).
 
 The integration is structural by design:
 
@@ -114,6 +116,38 @@ const observation = observationFromAgenticDataResolution(resolution, {
 
 The unresolved candidates remain relevant audit evidence and should be
 persisted with the verification record.
+
+## Go
+
+The Go port provides the same structural adapter, with the same rejections and
+the same `WORLDCUT_ADK_RESOLUTION_INVALID` error code:
+
+```go
+import (
+	worldcut "github.com/Jason-Doyle/WorldCut/ports/go"
+	adk "github.com/Jason-Doyle/WorldCut/ports/go/integrations/agenticdatakernel"
+)
+
+head, err := adk.ObservationFromResolution(headResolution, adk.Options{})
+if err != nil {
+	return err
+}
+ci, err := adk.ObservationFromResolution(ciResolution, adk.Options{
+	AllowResolvedWithConflict: true,
+})
+if err != nil {
+	return err
+}
+
+result, err := worldcut.VerifyDecisionContract(worldcut.VerificationInput{
+	Contract:     contract,
+	Observations: []worldcut.Observation{head, ci},
+})
+```
+
+`Resolution` and `Assertion` are structural Go types. The kernel object and
+`basis` values are supplied as ordinary Go values and are snapshotted, so the
+returned observation never aliases caller state.
 
 ## Persisting verification
 

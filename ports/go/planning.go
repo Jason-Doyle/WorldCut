@@ -88,8 +88,8 @@ func addOption(state planState, candidate AcquisitionOption) (planState, error) 
 	}
 	cost := state.cost
 	for _, newAction := range candidate.Actions {
-		if newAction.Cost < 0 || newAction.Cost > maxAcquisitionCost {
-			return planState{}, invalidInput("acquisition action %s cost must be between 0 and %d", newAction.ID, maxAcquisitionCost)
+		if newAction.Cost < 0 || newAction.Cost > MaxAcquisitionCost {
+			return planState{}, invalidInput("acquisition action %s cost must be between 0 and %d", newAction.ID, MaxAcquisitionCost)
 		}
 		if existing, ok := actions[newAction.ID]; ok {
 			if existing.Cost != newAction.Cost {

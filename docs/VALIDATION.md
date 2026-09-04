@@ -31,6 +31,31 @@ This establishes that GitHub exposes the fields required by this integration
 for the inspected workflow history. It does not establish the same coverage
 for other providers or prove that an arbitrary workflow is trustworthy.
 
+### Go implementation parity
+
+On 4 September 2026 the same public repository, branch, and workflow were
+queried with both implementations. The TypeScript gate
+(`node dist/github-ci-cli.js`) and the Go gate (`worldcut-github-ci-go`)
+returned the same `branchSha`, the same `verifiedSha`, the same workflow run
+identity, the same `CONTRACT_SATISFIED` verdict, and the same two satisfied
+requirement summaries. The verification-record digests differ, as they must,
+because each run carries its own observation timestamps and observation
+identifiers.
+
+`inspectGitHubWorkflowEvidence` and `githubactions.InspectWorkflowEvidence`
+returned identical coverage over the same 20 completed push runs:
+
+| Measurement | Result |
+| --- | ---: |
+| Completed `push` runs inspected | 20 |
+| Runs with complete dependency and conclusion evidence | 20 |
+| Evidence coverage | 100% |
+| Conclusions | 19 `success`, 1 `cancelled` |
+
+This is a single live observation of one public repository. It is not a
+continuous parity guarantee; the enforced cross-language guarantee remains the
+verifier differential suite.
+
 ## Package artifact
 
 `npm run test:package`:

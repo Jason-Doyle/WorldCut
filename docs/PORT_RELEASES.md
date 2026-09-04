@@ -10,6 +10,12 @@ Python and .NET use registry-specific protected tag workflows:
 
 Current registry status:
 
+- Go `ports/go/v0.2.0` is the published module tag. It adds the adapters, the
+  GitHub Actions gate, the
+  Agentic Data Kernel adapter, `worldcut-github-ci-go`, and the Go
+  construction API. Every change is backward compatible with `v0.1.0` —
+  `ParseInput`, `Verify`, and `VerifyJSON` keep their signatures and outputs —
+  so a minor version, not a major one, is correct.
 - .NET `0.1.1` is published as
   [`WorldCut`](https://www.nuget.org/packages/WorldCut/0.1.1) and
   [`WorldCut.Tool`](https://www.nuget.org/packages/WorldCut.Tool/0.1.1).

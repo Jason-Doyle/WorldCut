@@ -57,9 +57,12 @@ results, as described in
 | Port | Protocol / engine | Status |
 | --- | --- | --- |
 | TypeScript | 0.1 / 0.1.2 | Reference package with documented integrations |
-| [Go](ports/go) | 0.1 / 0.1.2 | Independent conformant verifier and CLI; integrations not yet included |
+| [Go](ports/go) | 0.1 / 0.1.2 | Independent conformant verifier, Go construction API, Git/HTTP/Kubernetes adapters, GitHub Actions gate, Agentic Data Kernel adapter, and two CLIs |
 | [Python](ports/python) | 0.1 / 0.1.2 | [`worldcut`](https://pypi.org/project/worldcut/0.1.1/) package and `worldcut-py` CLI for Python 3.11+ |
 | [.NET](ports/dotnet) | 0.1 / 0.1.2 | [`WorldCut`](https://www.nuget.org/packages/WorldCut/0.1.1) library and [`WorldCut.Tool`](https://www.nuget.org/packages/WorldCut.Tool/0.1.1) CLI for .NET 8 and .NET 10 |
+
+Python and .NET currently implement the verifier and CLI only. The adapters
+and integrations are available in TypeScript and Go.
 
 Go is available through its public module tag, Python `0.1.1` is live on PyPI,
 and .NET `0.1.1` is live on NuGet.org. The Python release includes PEP 740
@@ -366,6 +369,9 @@ npm run feasibility
 
 Set `WORLDCUT_SAMPLE_GIT_REPO` to inspect another local Git repository.
 
+The Go port implements the same three adapters in
+[`ports/go/adapters`](ports/go/adapters).
+
 ## GitHub Actions deployment gate
 
 The package includes a production-oriented gate for the latest completed
@@ -391,6 +397,10 @@ In GitHub Actions the CLI writes `verified_sha` and `workflow_run_id` to
 [`examples/github-actions/deployment-gate.yml`](examples/github-actions/deployment-gate.yml)
 and [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md).
 
+The Go port provides the same gate as `worldcut-github-ci-go` and
+`githubactions.VerifyLatestWorkflow`. See
+[`examples/github-actions/deployment-gate-go.yml`](examples/github-actions/deployment-gate-go.yml).
+
 ## Agentic Data Kernel
 
 `observationFromAgenticDataResolution` converts an eligible Agentic Data Kernel
@@ -402,6 +412,9 @@ outside the selected system or valid time, and cross-tenant resource claims.
 See
 [`docs/AGENTIC_DATA_KERNEL.md`](docs/AGENTIC_DATA_KERNEL.md)
 for the namespaced `basis.worldcut` contract and effect-gating guidance.
+
+The Go equivalent is
+`agenticdatakernel.ObservationFromResolution`.
 
 ## JSON Schemas
 
