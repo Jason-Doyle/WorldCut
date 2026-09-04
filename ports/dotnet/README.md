@@ -23,15 +23,19 @@ the .NET 8 runtime is additionally required to run the `net8.0` test pass.
 
 ## Install
 
-NuGet.org publication is not configured yet. Build packages from the protected
-source tag into a local feed:
+Install the library and global tool after the `0.1.1` NuGet.org release is live:
 
 ```sh
-git clone --branch ports/dotnet/v0.1.0 --depth 1 https://github.com/Jason-Doyle/WorldCut.git
+dotnet add package WorldCut --version 0.1.1
+dotnet tool install --global WorldCut.Tool --version 0.1.1
+```
+
+Until then, or when a local feed is preferred, build from the protected tag:
+
+```sh
+git clone --branch ports/dotnet/v0.1.1 --depth 1 https://github.com/Jason-Doyle/WorldCut.git
 cd WorldCut/ports/dotnet
 dotnet pack WorldCut.sln --configuration Release --output packages
-dotnet add path/to/App.csproj package WorldCut --version 0.1.0 --source ./packages
-dotnet tool install --global WorldCut.Tool --version 0.1.0 --add-source ./packages
 ```
 
 ## Library

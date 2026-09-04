@@ -31,7 +31,8 @@
 [CmdletBinding()]
 param(
     [string] $Dotnet = 'dotnet',
-    [string] $Configuration = 'Release'
+    [string] $Configuration = 'Release',
+    [string] $ArtifactDirectory
 )
 
 Set-StrictMode -Version Latest
@@ -41,7 +42,7 @@ $portRoot = Split-Path -Parent $PSScriptRoot
 $repoRoot = Split-Path -Parent (Split-Path -Parent $portRoot)
 $workspace = Join-Path $portRoot '.package-smoke'
 $feed = Join-Path $workspace 'feed'
-$packageVersion = '0.1.0'
+$packageVersion = '0.1.1'
 
 # An installed tool's apphost resolves its runtime through DOTNET_ROOT or the
 # machine-wide install. When an explicit dotnet host is supplied from a private
@@ -387,6 +388,30 @@ Invoke-Step 'Run the packaged net8.0 tool asset directly' {
     Assert-True ($result.verificationRecordDigest -eq $expectedDigest) 'the net8.0 tool asset produced a different digest'
 
     $global:LASTEXITCODE = 0
+}
+
+if ($ArtifactDirectory) {
+    Invoke-Step 'Copy verified package artifacts' {
+        $resolvedArtifacts = [System.IO.Path]::GetFullPath(
+            $ArtifactDirectory,
+            $portRoot)
+        if (Test-Path -LiteralPath $resolvedArtifacts) {
+            $existing = @(Get-ChildItem -LiteralPath $resolvedArtifacts -Force)
+            if ($existing.Count -gt 0) {
+                throw "ArtifactDirectory must be empty: $resolvedArtifacts"
+            }
+        }
+        else {
+            New-Item -ItemType Directory -Path $resolvedArtifacts | Out-Null
+        }
+        Copy-Item -LiteralPath (Join-Path $feed "WorldCut.$packageVersion.nupkg") `
+            -Destination $resolvedArtifacts
+        Copy-Item -LiteralPath (Join-Path $feed "WorldCut.$packageVersion.snupkg") `
+            -Destination $resolvedArtifacts
+        Copy-Item -LiteralPath (Join-Path $feed "WorldCut.Tool.$packageVersion.nupkg") `
+            -Destination $resolvedArtifacts
+        $global:LASTEXITCODE = 0
+    }
 }
 
 Write-Host ''

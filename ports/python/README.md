@@ -6,11 +6,16 @@ required.
 
 ## Install
 
-PyPI publication is not configured yet. Install the protected source tag
-directly:
+Install from PyPI after the `0.1.1` registry release is live:
 
 ```sh
-python -m pip install "worldcut @ git+https://github.com/Jason-Doyle/WorldCut.git@ports/python/v0.1.0#subdirectory=ports/python"
+python -m pip install worldcut==0.1.1
+```
+
+Until then, or when a source install is preferred, use the protected tag:
+
+```sh
+python -m pip install "worldcut @ git+https://github.com/Jason-Doyle/WorldCut.git@ports/python/v0.1.1#subdirectory=ports/python"
 ```
 
 ## Library

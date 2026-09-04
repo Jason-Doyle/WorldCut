@@ -12,7 +12,7 @@
     <Title>WorldCut</Title>
     <Description>Independent .NET implementation of the WorldCut decision-coherence protocol 0.1: verify that observations from independent systems satisfy explicit version and temporal requirements, with deterministic RFC 8785 canonicalization and verification-record digests. No third-party package dependencies.</Description>
     <PackageTags>verification;consistency;distributed-systems;provenance;canonicalization;rfc8785;jcs;determinism</PackageTags>
-    <PackageReleaseNotes>First release of the independent .NET port of WorldCut protocol 0.1 and engine ruleset 0.1.2.</PackageReleaseNotes>
+    <PackageReleaseNotes>Registry release of the independent .NET port of WorldCut protocol 0.1 and engine ruleset 0.1.2, with the same verified semantics as the source-tagged 0.1.0 implementation.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
