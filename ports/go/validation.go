@@ -14,8 +14,11 @@ import (
 )
 
 const (
-	maxAcquisitionCost = int64(1_000_000_000)
-	timestampLayout    = "2006-01-02T15:04:05.000Z"
+	// MaxAcquisitionCost is the inclusive protocol bound on an integer
+	// acquisition cost.
+	MaxAcquisitionCost = int64(1_000_000_000)
+
+	timestampLayout = "2006-01-02T15:04:05.000Z"
 )
 
 var provenanceValues = map[string]bool{
@@ -381,6 +384,7 @@ func parseContract(value any) (Contract, time.Time, error) {
 		ID:           id,
 		Version:      version,
 		DecisionTime: decisionText,
+		Assumptions:  SupportedAssumptions(),
 		Requirements: requirements,
 		raw:          record,
 	}, decisionTime, nil
@@ -415,8 +419,8 @@ func parseObservation(value any) (Observation, time.Time, error) {
 		return Observation{}, time.Time{}, err
 	}
 	costNumber, ok := record["acquisitionCost"].(float64)
-	if !ok || math.Trunc(costNumber) != costNumber || costNumber < 0 || costNumber > float64(maxAcquisitionCost) {
-		return Observation{}, time.Time{}, fmt.Errorf("%s.acquisitionCost must be an integer between 0 and %d", role, maxAcquisitionCost)
+	if !ok || math.Trunc(costNumber) != costNumber || costNumber < 0 || costNumber > float64(MaxAcquisitionCost) {
+		return Observation{}, time.Time{}, fmt.Errorf("%s.acquisitionCost must be an integer between 0 and %d", role, MaxAcquisitionCost)
 	}
 	witness, err := parseWitness(record["witness"], role)
 	if err != nil {

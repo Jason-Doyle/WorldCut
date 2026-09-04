@@ -1,0 +1,41 @@
+name: Deploy verified main with the Go gate
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    branches:
+      - main
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  gate:
+    if: github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+
+      # The Go gate ships in the ports/go/v0.2.0 module tag.
+      - name: Install the WorldCut Go gate
+        run: go install github.com/Jason-Doyle/WorldCut/ports/go/cmd/worldcut-github-ci-go@v0.2.0
+
+      - name: Verify latest completed CI run
+        id: worldcut
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          worldcut-github-ci-go \
+            --repository "$GITHUB_REPOSITORY" \
+            --branch main \
+            --workflow ci.yml
+
+      - name: Deploy the immutable verified revision
+        run: |
+          echo "Deploy exactly ${{ steps.worldcut.outputs.verified_sha }}"

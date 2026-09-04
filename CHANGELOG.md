@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+- Added Go integrations to the `ports/go` module, closing the gap where the Go
+  port shipped a verifier but no adapters or integrations:
+  - `adapters.CaptureGitHead`, `adapters.CaptureHTTPObservation`, and
+    `adapters.CaptureKubernetesObservation`, behavior-compatible with the
+    TypeScript adapters, including exact branch-ref resolution, strong-ETag
+    promotion only, refused redirects, unread-and-closed response bodies, and
+    opaque Kubernetes `resourceVersion` handling;
+  - `githubactions.VerifyLatestWorkflow` and
+    `githubactions.InspectWorkflowEvidence`, the latest-completed-push
+    deployment gate and evidence coverage report, built on `net/http` with an
+    injectable client, API base URL, clock, and identifier source;
+  - `agenticdatakernel.ObservationFromResolution`, the structural Agentic Data
+    Kernel adapter, with no runtime kernel dependency;
+  - the `worldcut-github-ci-go` command, equivalent to `worldcut-github-ci`,
+    including stable JSON errors, exit status 2 unless the contract is
+    satisfied, and `verified_sha`/`workflow_run_id` in `GITHUB_OUTPUT`.
+- Added a Go construction API so captured observations can be verified without
+  hand-assembling protocol JSON: `VerificationInput`, `ContractAssumptions`,
+  `SupportedAssumptions`, `ParseVerificationInput`, `VerifyDecisionContract`,
+  requirement constructors, `SnapshotJSONValue`, `ParseTimestamp`, and
+  `FormatTimestamp`. Constructed inputs are encoded and then validated by the
+  existing `ParseInput` path, so there is no second or weaker validation route,
+  and parsed snapshots and results remain mutation isolated. `ParseInput`,
+  `Verify`, and `VerifyJSON` are unchanged, and protocol 0.1 and engine 0.1.2
+  outputs are unchanged.
+- Added the stable Go integration error codes `WORLDCUT_GITHUB_API_ERROR`,
+  `WORLDCUT_GITHUB_RESPONSE_INVALID`, and `WORLDCUT_ADK_RESOLUTION_INVALID`,
+  plus `NewError`, `WrapError`, and cause unwrapping in `ErrorCode`.
+- Added a Go GitHub Actions deployment-gate example workflow and documented the
+  Go integrations in the port README, root README, `docs/INTEGRATIONS.md`,
+  `docs/AGENTIC_DATA_KERNEL.md`, and `docs/VALIDATION.md`. The Go module keeps
+  its single `jcs` dependency and adds no GitHub, Kubernetes, or cloud SDK.
 - Added OIDC trusted-publishing workflows for Python `0.1.1` on PyPI and
   `WorldCut`/`WorldCut.Tool` `0.1.1` on NuGet.org, including protected tag
   validation, exact-artifact checks, and language-specific GitHub releases.

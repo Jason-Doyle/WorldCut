@@ -78,9 +78,16 @@ jobs:
       - name: Check formatting
         shell: bash
         run: test -z "$(gofmt -l .)"
+      - run: go build ./...
       - run: go test ./...
       - run: go test -race ./...
       - run: go vet ./...
+      - name: Smoke test both command-line tools
+        shell: bash
+        run: |
+          go run ./cmd/worldcut-go --require-satisfied \
+            ../../examples/coherent-deployment.json > /dev/null
+          go run ./cmd/worldcut-github-ci-go --help > /dev/null
 
   python:
     name: Python ${{ matrix.python }}

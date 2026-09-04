@@ -1,5 +1,22 @@
 # Integrations
 
+Integrations are available in TypeScript and Go. Both implement the same
+behavior; the tables below give the TypeScript name first and the Go name
+second.
+
+| Integration | TypeScript | Go |
+| --- | --- | --- |
+| GitHub Actions gate | `verifyLatestGitHubWorkflow` | `githubactions.VerifyLatestWorkflow` |
+| GitHub evidence coverage | `inspectGitHubWorkflowEvidence` | `githubactions.InspectWorkflowEvidence` |
+| GitHub gate CLI | `worldcut-github-ci` | `worldcut-github-ci-go` |
+| Git | `captureGitHead` | `adapters.CaptureGitHead` |
+| HTTP | `captureHttpObservation` | `adapters.CaptureHTTPObservation` |
+| Kubernetes | `captureKubernetesObservation` | `adapters.CaptureKubernetesObservation` |
+| Agentic Data Kernel | `observationFromAgenticDataResolution` | `agenticdatakernel.ObservationFromResolution` |
+
+The Python and .NET ports implement the verifier only. There is no
+TypeScript-only integration in the list above.
+
 ## GitHub Actions deployment gate
 
 `verifyLatestGitHubWorkflow` checks the latest completed `push` run for an
@@ -34,10 +51,42 @@ await deployCommit(verification.verifiedSha);
 Use a numeric workflow ID or a filename such as `ci.yml`. Display names are
 not accepted because they are not unambiguous identifiers.
 
+In Go:
+
+```go
+verification, err := githubactions.VerifyLatestWorkflow(ctx, githubactions.Options{
+	Repository: "acme/payments",
+	Branch:     "main",
+	Workflow:   "ci.yml",
+	Token:      os.Getenv("GITHUB_TOKEN"),
+})
+if err != nil {
+	return err
+}
+if verification.VerifiedSHA == nil {
+	return fmt.Errorf("deployment blocked: %s", verification.Result.Verdict)
+}
+return deployCommit(ctx, *verification.VerifiedSHA)
+```
+
+The Go gate uses `net/http` only. `Options` accepts an injectable HTTP client,
+API base URL, clock, and observation identifier source, so the gate is tested
+without network access. Response bodies are bounded, redirects are refused,
+and a token is never included in an error message.
+
 The command-line gate is:
 
 ```sh
 worldcut-github-ci \
+  --repository acme/payments \
+  --branch main \
+  --workflow ci.yml
+```
+
+The Go gate takes the same flags:
+
+```sh
+worldcut-github-ci-go \
   --repository acme/payments \
   --branch main \
   --workflow ci.yml
@@ -57,28 +106,44 @@ Deploy `verifiedSha` or an immutable artifact built from that SHA. Never verify
 
 See
 [`examples/github-actions/deployment-gate.yml`](../examples/github-actions/deployment-gate.yml)
-for a `workflow_run` example.
+and
+[`examples/github-actions/deployment-gate-go.yml`](../examples/github-actions/deployment-gate-go.yml)
+for `workflow_run` examples.
 
 ## Native metadata adapters
 
+Both implementations return an error rather than a success-shaped observation
+when a provider call fails, and neither invents dependency or validity
+metadata.
+
 ### Git
 
-`captureGitHead` validates and resolves an exact local branch ref and returns
-its full commit SHA. Revision expressions such as `main~1` are rejected.
+`captureGitHead` and `adapters.CaptureGitHead` validate and resolve an exact
+local branch ref and return its full commit SHA. Revision expressions such as
+`main~1` are rejected.
 
 ### HTTP
 
-`captureHttpObservation` promotes only a syntactically valid strong ETag into
-an exact version witness. Weak ETags and `Last-Modified` remain descriptive
-metadata.
+`captureHttpObservation` and `adapters.CaptureHTTPObservation` promote only a
+syntactically valid strong ETag into an exact version witness. Weak ETags, the
+wildcard, unquoted values, and `Last-Modified` remain descriptive metadata.
+Redirects are never followed and the response body is never read.
 
 ### Kubernetes
 
-`captureKubernetesObservation` records `metadata.resourceVersion` as an opaque
-version token. Clients must not sort, parse, or treat it as a timestamp.
+`captureKubernetesObservation` and `adapters.CaptureKubernetesObservation`
+record `metadata.resourceVersion` as an opaque version token. Clients must not
+sort, parse, or treat it as a timestamp.
 
 ## Agentic Data Kernel
 
 The structural adapter validates kernel resolution and assertion lifecycle
 semantics before producing a WorldCut observation. See
 [Agentic Data Kernel integration](AGENTIC_DATA_KERNEL.md).
+
+## Building a contract from captured observations
+
+The captured observations are ordinary protocol observations. In TypeScript
+pass them to `verifyDecisionContract`; in Go pass them to
+`worldcut.VerifyDecisionContract`, which applies exactly the same validation
+and canonicalization as the JSON transport path.
