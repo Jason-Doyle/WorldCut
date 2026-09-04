@@ -5,6 +5,10 @@
 - Added OIDC trusted-publishing workflows for Python `0.1.1` on PyPI and
   `WorldCut`/`WorldCut.Tool` `0.1.1` on NuGet.org, including protected tag
   validation, exact-artifact checks, and language-specific GitHub releases.
+- Published `WorldCut` and `WorldCut.Tool` `0.1.1` on NuGet.org with
+  repository signatures and verified package contents.
+- Published Python `worldcut` `0.1.1` on PyPI with verified PEP 740
+  attestations for the wheel and source distribution.
 
 ## 0.2.0 - 2026-09-04
 

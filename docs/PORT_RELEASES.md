@@ -8,6 +8,15 @@ Python and .NET use registry-specific protected tag workflows:
 | Python | PyPI | `release-python.yml` | `pypi` | `ports/python/v*` |
 | .NET | NuGet.org | `release-dotnet.yml` | `nuget` | `ports/dotnet/v*` |
 
+Current registry status:
+
+- .NET `0.1.1` is published as
+  [`WorldCut`](https://www.nuget.org/packages/WorldCut/0.1.1) and
+  [`WorldCut.Tool`](https://www.nuget.org/packages/WorldCut.Tool/0.1.1).
+- Python `0.1.1` is published as
+  [`worldcut`](https://pypi.org/project/worldcut/0.1.1/) with PEP 740 digital
+  attestations for both the wheel and source distribution.
+
 Both workflows:
 
 - require an annotated protected tag whose version matches the package;

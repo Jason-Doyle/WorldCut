@@ -58,12 +58,13 @@ results, as described in
 | --- | --- | --- |
 | TypeScript | 0.1 / 0.1.2 | Reference package with documented integrations |
 | [Go](ports/go) | 0.1 / 0.1.2 | Independent conformant verifier and CLI; integrations not yet included |
-| [Python](ports/python) | 0.1 / 0.1.2 | Independent conformant verifier and CLI; integrations not yet included |
-| [.NET](ports/dotnet) | 0.1 / 0.1.2 | Independent conformant verifier and CLI for .NET 8 and .NET 10; integrations not yet included |
+| [Python](ports/python) | 0.1 / 0.1.2 | [`worldcut`](https://pypi.org/project/worldcut/0.1.1/) package and `worldcut-py` CLI for Python 3.11+ |
+| [.NET](ports/dotnet) | 0.1 / 0.1.2 | [`WorldCut`](https://www.nuget.org/packages/WorldCut/0.1.1) library and [`WorldCut.Tool`](https://www.nuget.org/packages/WorldCut.Tool/0.1.1) CLI for .NET 8 and .NET 10 |
 
-Go is available through its public module tag. Python and .NET registry release
-workflows are configured for version `0.1.1`; until those registry releases are
-live, their port READMEs also provide protected source-tag installation paths.
+Go is available through its public module tag, Python `0.1.1` is live on PyPI,
+and .NET `0.1.1` is live on NuGet.org. The Python release includes PEP 740
+digital attestations bound to this repository and its protected release
+workflow.
 
 Registry release configuration is documented in
 [`docs/PORT_RELEASES.md`](docs/PORT_RELEASES.md).
