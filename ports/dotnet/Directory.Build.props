@@ -33,7 +33,7 @@
 
   <!-- Shared package metadata for the two publishable projects. -->
   <PropertyGroup>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Authors>Jason Doyle</Authors>
     <Company>Jason Doyle</Company>
     <Copyright>Copyright (c) 2026 Jason Doyle</Copyright>

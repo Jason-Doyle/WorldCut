@@ -1,0 +1,224 @@
+name: Release .NET
+
+on:
+  push:
+    tags:
+      - "ports/dotnet/v*"
+
+concurrency:
+  group: release-dotnet
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_TAG: ${{ github.ref_name }}
+
+jobs:
+  package:
+    name: Validate .NET release
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22.19.0
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: |
+            8.0.424
+            10.0.400
+      - name: Validate protected release tag
+        id: release
+        shell: bash
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          node scripts/validate-port-release-tag.mjs dotnet "$RELEASE_TAG"
+          VERSION="${RELEASE_TAG#ports/dotnet/v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Verify release commit passed main CI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          TAGGED_SHA=$(git rev-parse "$RELEASE_TAG^{commit}")
+          RUN=$(
+            gh api \
+              "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?branch=main&event=push&status=completed&per_page=100" \
+              --jq "[.workflow_runs[] | select(.head_sha == \"$TAGGED_SHA\")] | first | [.id,.conclusion,.event,.head_branch,.head_repository.full_name] | @tsv"
+          )
+          test -n "$RUN"
+          IFS=$'\t' read -r RUN_ID CONCLUSION EVENT BRANCH REPOSITORY <<< "$RUN"
+          test "$CONCLUSION" = "success"
+          test "$EVENT" = "push"
+          test "$BRANCH" = "main"
+          test "$REPOSITORY" = "$GITHUB_REPOSITORY"
+          echo "Verified CI run $RUN_ID for $TAGGED_SHA"
+      - name: Restore locked dependencies
+        working-directory: ports/dotnet
+        run: dotnet restore --locked-mode
+      - name: Audit dependencies for known vulnerabilities
+        working-directory: ports/dotnet
+        run: dotnet restore --locked-mode --no-cache "-warnaserror:NU1901;NU1902;NU1903;NU1904"
+      - name: Validate source
+        working-directory: ports/dotnet
+        run: |
+          dotnet format --verify-no-changes --no-restore
+          dotnet build --configuration Release --no-restore
+          dotnet test --configuration Release --no-build
+      - name: Build and consume exact packages
+        working-directory: ports/dotnet
+        shell: pwsh
+        run: ./scripts/package-smoke.ps1 -ArtifactDirectory ../../release-artifacts/dotnet/dist
+      - name: Hash package artifacts
+        shell: bash
+        run: |
+          cd release-artifacts/dotnet/dist
+          sha256sum * > ../SHA256SUMS
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: dotnet-package
+          path: release-artifacts/dotnet
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    name: Publish NuGet packages
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: nuget
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: dotnet-package
+          path: release-artifacts/dotnet
+      - name: Require NuGet account
+        env:
+          NUGET_USER: ${{ vars.NUGET_USER }}
+        shell: bash
+        run: test -n "$NUGET_USER"
+      - uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        id: login
+        with:
+          user: ${{ vars.NUGET_USER }}
+      - name: Publish exact packages
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        shell: bash
+        run: |
+          for package in release-artifacts/dotnet/dist/*.nupkg; do
+            dotnet nuget push "$package" \
+              --source https://api.nuget.org/v3/index.json \
+              --api-key "$NUGET_API_KEY" \
+              --skip-duplicate
+          done
+
+  verify:
+    name: Verify NuGet packages
+    needs:
+      - package
+      - publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: dotnet-package
+          path: release-artifacts/dotnet
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: |
+            8.0.424
+            10.0.400
+      - name: Match NuGet packages to built artifacts
+        env:
+          VERSION: ${{ needs.package.outputs.version }}
+        shell: bash
+        run: |
+          for id in worldcut worldcut.tool; do
+            local="release-artifacts/dotnet/dist/$(if [[ "$id" == "worldcut" ]]; then echo WorldCut; else echo WorldCut.Tool; fi).$VERSION.nupkg"
+            published="$id.$VERSION.nupkg"
+            for attempt in {1..80}; do
+              if curl --fail --silent --show-error --location \
+                "https://api.nuget.org/v3-flatcontainer/$id/$VERSION/$published" \
+                --output "$published"; then
+                break
+              fi
+              if [[ "$attempt" == 80 ]]; then
+                exit 1
+              fi
+              sleep 15
+            done
+            pwsh -File ./ports/dotnet/scripts/compare-nuget-package.ps1 \
+              -LocalPath "$local" \
+              -PublishedPath "$published"
+          done
+
+  github:
+    name: Create .NET GitHub release
+    needs:
+      - package
+      - verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: dotnet-package
+          path: release-artifacts/dotnet
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.package.outputs.version }}
+        shell: bash
+        run: |
+          if gh release view "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" \
+              release-artifacts/dotnet/dist/* \
+              release-artifacts/dotnet/SHA256SUMS \
+              --repo "$GITHUB_REPOSITORY" \
+              --clobber
+            gh release edit "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --draft=false \
+              --prerelease=false \
+              --latest=false
+          else
+            gh release create "$RELEASE_TAG" \
+              release-artifacts/dotnet/dist/* \
+              release-artifacts/dotnet/SHA256SUMS \
+              --repo "$GITHUB_REPOSITORY" \
+              --verify-tag \
+              --generate-notes \
+              --latest=false \
+              --title "WorldCut .NET $VERSION"
+          fi
+          rm -rf release-verification
+          mkdir release-verification
+          gh release download "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern 'WorldCut*' \
+            --pattern SHA256SUMS \
+            --dir release-verification
+          cd release-verification
+          sha256sum --check SHA256SUMS

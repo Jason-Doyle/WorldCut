@@ -61,10 +61,12 @@ results, as described in
 | [Python](ports/python) | 0.1 / 0.1.2 | Independent conformant verifier and CLI; integrations not yet included |
 | [.NET](ports/dotnet) | 0.1 / 0.1.2 | Independent conformant verifier and CLI for .NET 8 and .NET 10; integrations not yet included |
 
-Go is available through its public module tag. Python and .NET have protected
-source tags and complete package builds, but PyPI and NuGet.org publishing are
-not configured yet; their port READMEs contain verified installation
-instructions that do not assume registry availability.
+Go is available through its public module tag. Python and .NET registry release
+workflows are configured for version `0.1.1`; until those registry releases are
+live, their port READMEs also provide protected source-tag installation paths.
+
+Registry release configuration is documented in
+[`docs/PORT_RELEASES.md`](docs/PORT_RELEASES.md).
 
 Every port passes the committed vectors, and the
 [cross-language differential suite](docs/DIFFERENTIAL.md) checks that they still

@@ -15,12 +15,8 @@ The package has **no third-party package dependencies** and targets
 
 ## Install
 
-NuGet.org publication is not configured yet. This command will apply after the
-registry release; current source-tag installation instructions are maintained
-in the port documentation linked below.
-
 ```sh
-dotnet add package WorldCut
+dotnet add package WorldCut --version 0.1.1
 ```
 
 The matching CLI is packaged separately as a .NET tool:

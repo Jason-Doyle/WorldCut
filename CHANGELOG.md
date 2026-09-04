@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added OIDC trusted-publishing workflows for Python `0.1.1` on PyPI and
+  `WorldCut`/`WorldCut.Tool` `0.1.1` on NuGet.org, including protected tag
+  validation, exact-artifact checks, and language-specific GitHub releases.
+
 ## 0.2.0 - 2026-09-04
 
 - Added a required cross-language differential CI gate that runs the TypeScript,

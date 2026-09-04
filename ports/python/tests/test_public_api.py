@@ -24,7 +24,7 @@ def test_cli_help(capsys: pytest.CaptureFixture[str]) -> None:
 
 
 def test_public_versions() -> None:
-    assert worldcut.__version__ == "0.1.0"
+    assert worldcut.__version__ == "0.1.1"
     assert worldcut.PROTOCOL_VERSION == "0.1"
     assert worldcut.ENGINE_VERSION == "0.1.2"
     assert worldcut.CANONICALIZATION == "worldcut-json-v1"

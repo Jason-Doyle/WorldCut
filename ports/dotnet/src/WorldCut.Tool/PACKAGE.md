@@ -10,12 +10,8 @@ Targets **.NET 8** and **.NET 10**.
 
 ## Install
 
-NuGet.org publication is not configured yet. This command will apply after the
-registry release; current source-tag installation instructions are maintained
-in the port documentation linked below.
-
 ```sh
-dotnet tool install --global WorldCut.Tool
+dotnet tool install --global WorldCut.Tool --version 0.1.1
 ```
 
 ## Use

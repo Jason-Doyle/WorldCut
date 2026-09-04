@@ -20,7 +20,7 @@
     <Title>WorldCut CLI</Title>
     <Description>The worldcut-dotnet .NET global tool. Verifies a WorldCut protocol 0.1 decision-coherence input file and prints the complete verification result as JSON, with stable exit codes for deployment gates.</Description>
     <PackageTags>verification;cli;dotnet-tool;consistency;distributed-systems;provenance</PackageTags>
-    <PackageReleaseNotes>First release of the independent .NET WorldCut CLI for protocol 0.1 and engine ruleset 0.1.2.</PackageReleaseNotes>
+    <PackageReleaseNotes>Registry release of the independent .NET WorldCut CLI for protocol 0.1 and engine ruleset 0.1.2, with the same verified semantics as the source-tagged 0.1.0 implementation.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

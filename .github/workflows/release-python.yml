@@ -1,0 +1,217 @@
+name: Release Python
+
+on:
+  push:
+    tags:
+      - "ports/python/v*"
+
+concurrency:
+  group: release-python
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_TAG: ${{ github.ref_name }}
+
+jobs:
+  package:
+    name: Validate Python release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22.19.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.2"
+          cache: pip
+          cache-dependency-path: ports/python/pyproject.toml
+      - name: Validate protected release tag
+        id: release
+        shell: bash
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          node scripts/validate-port-release-tag.mjs python "$RELEASE_TAG"
+          VERSION="${RELEASE_TAG#ports/python/v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Verify release commit passed main CI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          TAGGED_SHA=$(git rev-parse "$RELEASE_TAG^{commit}")
+          RUN=$(
+            gh api \
+              "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?branch=main&event=push&status=completed&per_page=100" \
+              --jq "[.workflow_runs[] | select(.head_sha == \"$TAGGED_SHA\")] | first | [.id,.conclusion,.event,.head_branch,.head_repository.full_name] | @tsv"
+          )
+          test -n "$RUN"
+          IFS=$'\t' read -r RUN_ID CONCLUSION EVENT BRANCH REPOSITORY <<< "$RUN"
+          test "$CONCLUSION" = "success"
+          test "$EVENT" = "push"
+          test "$BRANCH" = "main"
+          test "$REPOSITORY" = "$GITHUB_REPOSITORY"
+          echo "Verified CI run $RUN_ID for $TAGGED_SHA"
+      - name: Install release tooling
+        working-directory: ports/python
+        run: python -m pip install ".[dev]"
+      - name: Validate source
+        working-directory: ports/python
+        run: |
+          ruff format --check .
+          ruff check .
+          mypy src
+          pytest
+      - name: Build exact distributions
+        working-directory: ports/python
+        run: |
+          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)"
+          python -m build
+          twine check dist/*
+          mkdir -p ../../release-artifacts/python/dist
+          cp dist/* ../../release-artifacts/python/dist/
+          cd ../../release-artifacts/python/dist
+          sha256sum * > ../SHA256SUMS
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: python-package
+          path: release-artifacts/python
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    name: Publish PyPI package
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: python-package
+          path: release-artifacts/python
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          packages-dir: release-artifacts/python/dist
+          print-hash: true
+          skip-existing: true
+
+  verify:
+    name: Verify PyPI package
+    needs:
+      - package
+      - publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: python-package
+          path: release-artifacts/python
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.2"
+      - name: Match PyPI digests to built artifacts
+        env:
+          VERSION: ${{ needs.package.outputs.version }}
+        shell: python
+        run: |
+          import hashlib
+          import json
+          import os
+          import pathlib
+          import time
+          import urllib.request
+
+          version = os.environ["VERSION"]
+          local = {}
+          for path in pathlib.Path("release-artifacts/python/dist").iterdir():
+              local[path.name] = hashlib.sha256(path.read_bytes()).hexdigest()
+          published = {}
+          for attempt in range(40):
+              try:
+                  with urllib.request.urlopen(
+                      f"https://pypi.org/pypi/worldcut/{version}/json"
+                  ) as response:
+                      metadata = json.load(response)
+                  published = {
+                      entry["filename"]: entry["digests"]["sha256"]
+                      for entry in metadata["urls"]
+                  }
+                  if local == published:
+                      print(f"Verified worldcut {version}: {published}")
+                      break
+              except Exception:
+                  published = {}
+              if attempt == 39:
+                  raise SystemExit(
+                      f"PyPI artifacts differ from the build: local={local}, published={published}"
+                  )
+              time.sleep(15)
+
+  github:
+    name: Create Python GitHub release
+    needs:
+      - package
+      - verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: python-package
+          path: release-artifacts/python
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.package.outputs.version }}
+        shell: bash
+        run: |
+          if gh release view "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" \
+              release-artifacts/python/dist/* \
+              release-artifacts/python/SHA256SUMS \
+              --repo "$GITHUB_REPOSITORY" \
+              --clobber
+            gh release edit "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --draft=false \
+              --prerelease=false \
+              --latest=false
+          else
+            gh release create "$RELEASE_TAG" \
+              release-artifacts/python/dist/* \
+              release-artifacts/python/SHA256SUMS \
+              --repo "$GITHUB_REPOSITORY" \
+              --verify-tag \
+              --generate-notes \
+              --latest=false \
+              --title "WorldCut Python $VERSION"
+          fi
+          rm -rf release-verification
+          mkdir release-verification
+          gh release download "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern 'worldcut-*' \
+            --pattern SHA256SUMS \
+            --dir release-verification
+          cd release-verification
+          sha256sum --check SHA256SUMS
