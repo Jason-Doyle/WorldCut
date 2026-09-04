@@ -2,11 +2,17 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-09-04
+
 - Added a required cross-language differential CI gate that runs the TypeScript,
   Go, Python, and .NET command-line tools over one shared corpus of golden,
   edge, invalid, malformed, and seeded random inputs and compares their complete
   verification results, error codes, and verification-record digests
   (`npm run differential`, documented in `docs/DIFFERENTIAL.md`).
+- Added independent conformant Go, Python, and .NET implementations with
+  language-native CLIs, immutable parsed inputs, exact golden-vector coverage,
+  and isolated package-consumption tests. The .NET implementation targets
+  `net8.0` and `net10.0`.
 - Fixed the TypeScript CLI accepting transport bytes that are not valid UTF-8.
   Node's lossy decoding replaced malformed bytes with U+FFFD and then verified
   the corrupted evidence; the Go, Python, and .NET ports already rejected it.
@@ -15,9 +21,6 @@
 - Hardened the Go port so a JSON number that underflows the IEEE-754 double
   range, such as `1e-400`, is accepted as a finite zero like the other ports,
   while syntax errors and overflow to infinity are still rejected.
-
-## 0.2.0 - 2026-09-03
-
 - Added language-neutral protocol, canonicalization, and conformance
   specifications with committed golden vectors.
 - Defined package-independent engine versioning for cross-language
