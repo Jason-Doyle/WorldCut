@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <RootNamespace>WorldCut.Tool</RootNamespace>
+    <AssemblyName>WorldCut.Tool</AssemblyName>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>worldcut-dotnet</ToolCommandName>
+    <!-- Tool packages already ship their PDBs under tools/, so a separate
+         symbol package would only duplicate them. -->
+    <IncludeSymbols>false</IncludeSymbols>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>WorldCut.Tool</PackageId>
+    <Title>WorldCut CLI</Title>
+    <Description>The worldcut-dotnet .NET global tool. Verifies a WorldCut protocol 0.1 decision-coherence input file and prints the complete verification result as JSON, with stable exit codes for deployment gates.</Description>
+    <PackageTags>verification;cli;dotnet-tool;consistency;distributed-systems;provenance</PackageTags>
+    <PackageReleaseNotes>First release of the independent .NET WorldCut CLI for protocol 0.1 and engine ruleset 0.1.2.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="PACKAGE.md" Pack="true" PackagePath="README.md" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="THIRD-PARTY-NOTICES.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WorldCut\WorldCut.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="WorldCut.Tests" />
+  </ItemGroup>
+
+</Project>

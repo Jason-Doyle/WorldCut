@@ -1,0 +1,145 @@
+{
+  "protocolVersion": "0.1",
+  "contract": {
+    "id": "deploy-current-tested-release",
+    "version": "1",
+    "decisionTime": "2026-09-02T18:00:00.000Z",
+    "assumptions": {
+      "clockModel": "trusted_normalized",
+      "intervalModel": "half_open",
+      "metadataModel": "honest_but_possibly_incomplete"
+    },
+    "requirements": [
+      {
+        "id": "ci-tested-current-head",
+        "type": "dependency",
+        "description": "The passing CI run tested the selected branch head",
+        "dependentRole": "ci",
+        "targetRole": "head",
+        "dependencyName": "tested_head"
+      },
+      {
+        "id": "ci-status-passed",
+        "type": "value_equals",
+        "description": "The CI status is passed",
+        "role": "ci",
+        "path": [
+          "status"
+        ],
+        "expected": "passed"
+      },
+      {
+        "id": "approval-and-quote-overlap",
+        "type": "common_valid_time",
+        "description": "The approval and quote were valid at a common time",
+        "roles": [
+          "approval",
+          "quote"
+        ],
+        "within": {
+          "from": "2026-09-02T17:55:00.000Z",
+          "until": "2026-09-02T18:00:00.001Z"
+        }
+      }
+    ]
+  },
+  "observations": [
+    {
+      "id": "obs-head-b",
+      "role": "head",
+      "resource": {
+        "provider": "github",
+        "account": "acme",
+        "kind": "branch_head",
+        "key": "payments/main"
+      },
+      "value": {
+        "commit": "commit-B"
+      },
+      "observedAt": "2026-09-02T17:59:58.000Z",
+      "acquisitionCost": 1,
+      "witness": {
+        "provenance": "provider_asserted",
+        "version": "commit-B"
+      }
+    },
+    {
+      "id": "obs-ci-b",
+      "role": "ci",
+      "resource": {
+        "provider": "ci.example",
+        "account": "acme",
+        "kind": "ci_run",
+        "key": "run-2041"
+      },
+      "value": "\ud800",
+      "observedAt": "2026-09-02T17:59:58.500Z",
+      "acquisitionCost": 4,
+      "witness": {
+        "provenance": "provider_asserted",
+        "version": "run-2041",
+        "dependencies": [
+          {
+            "name": "tested_head",
+            "resource": {
+              "provider": "github",
+              "account": "acme",
+              "kind": "branch_head",
+              "key": "payments/main"
+            },
+            "relation": "exact",
+            "version": "commit-B",
+            "provenance": "provider_asserted"
+          }
+        ]
+      }
+    },
+    {
+      "id": "obs-approval",
+      "role": "approval",
+      "resource": {
+        "provider": "change.example",
+        "account": "acme",
+        "kind": "approval",
+        "key": "release-2041"
+      },
+      "value": {
+        "approved": true
+      },
+      "observedAt": "2026-09-02T17:59:59.000Z",
+      "acquisitionCost": 2,
+      "witness": {
+        "provenance": "provider_asserted",
+        "version": "approval-8",
+        "validity": {
+          "from": "2026-09-02T17:50:00.000Z",
+          "until": "2026-09-02T18:05:00.000Z"
+        }
+      }
+    },
+    {
+      "id": "obs-quote",
+      "role": "quote",
+      "resource": {
+        "provider": "pricing.example",
+        "account": "acme",
+        "kind": "quote",
+        "key": "release-2041"
+      },
+      "value": {
+        "amount": 1250,
+        "currency": "USD"
+      },
+      "observedAt": "2026-09-02T17:59:59.500Z",
+      "acquisitionCost": 3,
+      "witness": {
+        "provenance": "provider_asserted",
+        "version": "quote-17",
+        "validity": {
+          "from": "2026-09-02T17:58:00.000Z",
+          "until": "2026-09-02T18:03:00.000Z"
+        }
+      }
+    }
+  ]
+}

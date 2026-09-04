@@ -1,0 +1,121 @@
+# Directory-scoped settings for the independent WorldCut .NET port.
+# The repository root .editorconfig still applies to whitespace and encoding.
+
+root = false
+
+[*.{csproj,props,targets,config}]
+indent_size = 2
+
+[*.cs]
+indent_size = 4
+
+# --- Language and formatting conventions -------------------------------------
+
+csharp_using_directive_placement = outside_namespace:error
+csharp_style_namespace_declarations = file_scoped:error
+csharp_prefer_braces = true:error
+csharp_style_prefer_method_group_conversion = true:suggestion
+csharp_style_var_for_built_in_types = false:silent
+csharp_style_var_when_type_is_apparent = true:silent
+csharp_style_var_elsewhere = false:silent
+csharp_style_expression_bodied_methods = when_on_single_line:silent
+csharp_style_expression_bodied_properties = when_on_single_line:silent
+csharp_style_prefer_primary_constructors = false:silent
+
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+dotnet_style_qualification_for_field = false:error
+dotnet_style_qualification_for_property = false:error
+dotnet_style_qualification_for_method = false:error
+dotnet_style_qualification_for_event = false:error
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:error
+dotnet_style_readonly_field = true:error
+dotnet_style_predefined_type_for_locals_parameters_members = true:error
+dotnet_style_predefined_type_for_member_access = true:error
+
+dotnet_diagnostic.IDE0005.severity = error
+dotnet_diagnostic.IDE0055.severity = error
+dotnet_diagnostic.IDE0161.severity = error
+
+# --- Naming ------------------------------------------------------------------
+# Roslyn applies the first matching rule, so the const and static-readonly rules
+# must precede the private instance-field rule.
+
+dotnet_naming_rule.constant_fields_are_pascal_case.severity = error
+dotnet_naming_rule.constant_fields_are_pascal_case.symbols = constant_fields
+dotnet_naming_rule.constant_fields_are_pascal_case.style = pascal_case
+
+dotnet_naming_rule.static_readonly_fields_are_pascal_case.severity = error
+dotnet_naming_rule.static_readonly_fields_are_pascal_case.symbols = static_readonly_fields
+dotnet_naming_rule.static_readonly_fields_are_pascal_case.style = pascal_case
+
+dotnet_naming_rule.private_fields_are_underscore_camel_case.severity = error
+dotnet_naming_rule.private_fields_are_underscore_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_are_underscore_camel_case.style = underscore_camel_case
+
+dotnet_naming_symbols.constant_fields.applicable_kinds = field
+dotnet_naming_symbols.constant_fields.applicable_accessibilities = *
+dotnet_naming_symbols.constant_fields.required_modifiers = const
+
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_fields.applicable_accessibilities = *
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = static,readonly
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_fields.required_modifiers =
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+
+# --- Analyzer policy ---------------------------------------------------------
+# `AnalysisLevel=latest-all` turns on every built-in analyzer. Each rule that is
+# switched off below records why it does not apply to this port.
+
+# The port is a small synchronous library with no logging abstraction, no async
+# code, and no localization surface.
+dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.CA1303.severity = none
+
+# Protocol identifiers such as WORLDCUT_INVALID_INPUT and the JSON member names
+# are fixed by spec/0.1 and must not be renamed for .NET naming heuristics.
+dotnet_diagnostic.CA1707.severity = none
+
+# The public surface exposes IReadOnlyList<T> rather than arrays; CA1002 targets
+# mutable generic collections that this port never returns.
+dotnet_diagnostic.CA1002.severity = none
+
+# CA1812 flags internal types that the analyzer cannot see being constructed
+# through reflection-free factory helpers used by this port.
+dotnet_diagnostic.CA1812.severity = none
+
+# JsonKind.String and JsonKind.Object name the JSON value shapes defined by
+# RFC 8259 and used by every WorldCut port; CA1720's "contains type name"
+# heuristic does not apply to a JSON kind enumeration.
+dotnet_diagnostic.CA1720.severity = none
+
+[Vendored/**/*.cs]
+# Third-party source vendored verbatim from Jcs.NET 0.1.1 (MIT). A dedicated
+# .editorconfig also lives next to that source; see
+# ports/dotnet/THIRD-PARTY-NOTICES.md.
+dotnet_analyzer_diagnostic.severity = none
+
+[tests/**/*.cs]
+# Test code is never a public library surface, so the API-hygiene rules below
+# do not apply. Correctness rules stay on.
+#
+# CA1062: xUnit supplies theory arguments; null guards would be dead code.
+# CA1508: several tests deliberately assert on comparisons the analyzer can
+#         prove, because proving them is the point of the test.
+# CA2000: StringWriter holds no unmanaged resource and lives for one assertion.
+# CA1861: constant argument arrays in assertions are intentional.
+# CA5394: tests use a seeded System.Random for reproducible fuzzing, never for
+#         anything security relevant.
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA1508.severity = none
+dotnet_diagnostic.CA2000.severity = none
+dotnet_diagnostic.CA1861.severity = none
+dotnet_diagnostic.CA5394.severity = none

@@ -55,6 +55,7 @@ Language-neutral protocol semantics and golden vectors are under
 | TypeScript | 0.1 / 0.1.2 | Reference package with documented integrations |
 | [Go](ports/go) | 0.1 / 0.1.2 | Independent conformant verifier and CLI; integrations not yet included |
 | [Python](ports/python) | 0.1 / 0.1.2 | Independent conformant verifier and CLI; integrations not yet included |
+| [.NET](ports/dotnet) | 0.1 / 0.1.2 | Independent conformant verifier and CLI for .NET 8 and .NET 10; integrations not yet included |
 
 ## Run the examples
 

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>WorldCut.Tests</RootNamespace>
+    <AssemblyName>WorldCut.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;CA1515</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\WorldCut\WorldCut.csproj" />
+    <ProjectReference Include="..\..\src\WorldCut.Tool\WorldCut.Tool.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      The shared conformance corpus is mirrored into this project by
+      scripts/generate-conformance.mjs so that the tests run without any file
+      from the parent repository.
+    -->
+    <None Include="data\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
