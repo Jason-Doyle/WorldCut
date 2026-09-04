@@ -90,13 +90,31 @@ async function main(): Promise<void> {
   }
 
   const inputPath = resolve(options.inputPath);
-  let source: string;
+  let bytes: Buffer;
   try {
-    source = await readFile(inputPath, "utf8");
+    bytes = await readFile(inputPath);
   } catch (error) {
     throw new WorldCutError(
       "WORLDCUT_FILE_READ_FAILED",
       `Unable to read ${inputPath}`,
+      { cause: error },
+    );
+  }
+  // Node's lossy UTF-8 decoding would substitute U+FFFD for malformed bytes and
+  // then verify the corrupted evidence. Every other WorldCut port rejects
+  // transport bytes that are not valid UTF-8, so this one does too.
+  // `ignoreBOM` keeps a leading U+FEFF in the string, where JSON.parse rejects
+  // it, instead of silently accepting a byte-order mark the other ports refuse.
+  let source: string;
+  try {
+    source = new TextDecoder("utf-8", {
+      fatal: true,
+      ignoreBOM: true,
+    }).decode(bytes);
+  } catch (error) {
+    throw new WorldCutError(
+      "WORLDCUT_INVALID_JSON",
+      `${inputPath} is not valid UTF-8`,
       { cause: error },
     );
   }

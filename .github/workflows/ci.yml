@@ -196,6 +196,44 @@ jobs:
         shell: pwsh
         run: ./scripts/package-smoke.ps1
 
+  differential:
+    name: Cross-language differential
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22.19.0
+          cache: npm
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          cache-dependency-path: ports/go/go.sum
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ports/python/pyproject.toml
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Use supported npm
+        run: npm install --global npm@10.9.7
+      - run: npm ci
+      - name: Install the Python port
+        run: python -m pip install ./ports/python
+      - name: Download Go modules
+        working-directory: ports/go
+        run: go mod download
+      - name: Restore .NET with locked dependencies
+        working-directory: ports/dotnet
+        run: dotnet restore --locked-mode
+      - name: Compare every implementation over one corpus
+        run: npm run differential
+
   required:
     name: Required checks
     if: always()
@@ -207,6 +245,7 @@ jobs:
       - python-package
       - dotnet
       - dotnet-package
+      - differential
     runs-on: ubuntu-latest
     steps:
       - name: Require successful CI
@@ -218,6 +257,7 @@ jobs:
           PYTHON_PACKAGE_RESULT: ${{ needs.python-package.result }}
           DOTNET_RESULT: ${{ needs.dotnet.result }}
           DOTNET_PACKAGE_RESULT: ${{ needs.dotnet-package.result }}
+          DIFFERENTIAL_RESULT: ${{ needs.differential.result }}
         run: |
           test "$NODE_RESULT" = "success"
           test "$BENCHMARK_RESULT" = "success"
@@ -226,3 +266,4 @@ jobs:
           test "$PYTHON_PACKAGE_RESULT" = "success"
           test "$DOTNET_RESULT" = "success"
           test "$DOTNET_PACKAGE_RESULT" = "success"
+          test "$DIFFERENTIAL_RESULT" = "success"

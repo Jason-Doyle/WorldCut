@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import type {
@@ -94,4 +95,39 @@ test("CLI emits a stable JSON error envelope", () => {
   };
   assert.equal(error.error.code, "WORLDCUT_FILE_READ_FAILED");
   assert.match(error.error.message, /Unable to read/);
+});
+
+test("CLI rejects transport bytes that are not valid UTF-8", () => {
+  const directory = mkdtempSync(join(tmpdir(), "worldcut-cli-"));
+  try {
+    const source = readFileSync(
+      join(process.cwd(), "examples", "coherent-deployment.json"),
+    );
+    const marker = source.indexOf(Buffer.from("commit-B", "utf8"));
+    assert.ok(marker > 0, "the fixture no longer contains the splice point");
+    const path = join(directory, "invalid-utf8.json");
+    writeFileSync(
+      path,
+      Buffer.concat([
+        source.subarray(0, marker),
+        Buffer.from([0xff, 0xfe]),
+        source.subarray(marker),
+      ]),
+    );
+
+    const result = spawnSync(
+      process.execPath,
+      [join(process.cwd(), "dist", "cli.js"), path, "--full"],
+      { encoding: "utf8" },
+    );
+
+    assert.equal(result.status, 1, result.stdout);
+    const error = JSON.parse(result.stderr) as {
+      error: { code: string; message: string };
+    };
+    assert.equal(error.error.code, "WORLDCUT_INVALID_JSON");
+    assert.match(error.error.message, /not valid UTF-8/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });

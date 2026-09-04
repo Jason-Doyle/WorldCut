@@ -30,6 +30,16 @@ Before proposing a release-affecting change:
 npm run release:check
 ```
 
+Changes to protocol semantics, canonicalization, conformance data, or any
+language port must also pass the four-toolchain differential gate:
+
+```sh
+npm run differential
+```
+
+Its Go, Python, and .NET prerequisites and reproducible seed controls are
+documented in [`docs/DIFFERENTIAL.md`](docs/DIFFERENTIAL.md).
+
 ## Pull requests
 
 Keep changes focused and include tests for observable behavior. Protocol
