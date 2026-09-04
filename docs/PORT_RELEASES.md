@@ -13,7 +13,9 @@ Current registry status:
 - .NET `0.1.1` is published as
   [`WorldCut`](https://www.nuget.org/packages/WorldCut/0.1.1) and
   [`WorldCut.Tool`](https://www.nuget.org/packages/WorldCut.Tool/0.1.1).
-- Python `0.1.1` is awaiting PyPI pending-publisher activation.
+- Python `0.1.1` is published as
+  [`worldcut`](https://pypi.org/project/worldcut/0.1.1/) with PEP 740 digital
+  attestations for both the wheel and source distribution.
 
 Both workflows:
 
