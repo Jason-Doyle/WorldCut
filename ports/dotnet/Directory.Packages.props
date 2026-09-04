@@ -1,0 +1,18 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <!--
+    The WorldCut library and CLI have no third-party package dependencies.
+    Every version below is used only by the test project and is pinned exactly.
+    xunit.v3 runs on Microsoft.Testing.Platform, which is the supported
+    `dotnet test` path on the .NET 10 SDK.
+  -->
+  <ItemGroup>
+    <PackageVersion Include="xunit.v3" Version="4.0.0" />
+  </ItemGroup>
+
+</Project>

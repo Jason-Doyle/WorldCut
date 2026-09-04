@@ -1,0 +1,22 @@
+# Third-party source vendored verbatim from Jcs.NET 0.1.1 (MIT).
+#
+# Upstream fidelity is deliberate: this directory is kept as close to
+# https://github.com/IsraelIyonsi/Jcs.NET @ 8aff616 as possible so that the
+# audited RFC 8785 implementation stays reviewable and diffable. Repository
+# style preferences and .NET analyzers are therefore not enforced here.
+#
+# See ports/dotnet/THIRD-PARTY-NOTICES.md for attribution, the exact list of
+# WorldCut modifications, and the WorldCut behaviour layered on top.
+
+root = false
+
+[*.cs]
+dotnet_analyzer_diagnostic.severity = none
+dotnet_diagnostic.CA1032.severity = none
+dotnet_diagnostic.CA1307.severity = none
+dotnet_diagnostic.CA1310.severity = none
+dotnet_diagnostic.CA1866.severity = none
+dotnet_diagnostic.CA2251.severity = none
+dotnet_diagnostic.IDE0005.severity = none
+dotnet_diagnostic.IDE0055.severity = none
+dotnet_diagnostic.IDE0161.severity = none

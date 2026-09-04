@@ -143,6 +143,59 @@ jobs:
           cd .sdist-test
           ../.sdist-venv/bin/pytest
 
+  dotnet:
+    name: .NET on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+    defaults:
+      run:
+        working-directory: ports/dotnet
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Restore with locked dependencies
+        run: dotnet restore --locked-mode
+      - name: Check formatting and code style
+        run: dotnet format --verify-no-changes --no-restore
+      - name: Build with warnings as errors
+        run: dotnet build --configuration Release --no-restore
+      - name: Test net8.0 and net10.0
+        run: dotnet test --configuration Release --no-build
+
+  dotnet-package:
+    name: .NET package
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: ports/dotnet
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Restore with locked dependencies
+        run: dotnet restore --locked-mode
+      - name: Audit dependencies for known vulnerabilities
+        # NuGetAudit is enabled in ports/dotnet/Directory.Build.props; the
+        # explicit escalation keeps a new advisory from passing as a warning.
+        run: dotnet restore --locked-mode --no-cache "-warnaserror:NU1901;NU1902;NU1903;NU1904"
+      - name: Pack, inspect, and consume both packages in isolation
+        shell: pwsh
+        run: ./scripts/package-smoke.ps1
+
   required:
     name: Required checks
     if: always()
@@ -152,6 +205,8 @@ jobs:
       - go
       - python
       - python-package
+      - dotnet
+      - dotnet-package
     runs-on: ubuntu-latest
     steps:
       - name: Require successful CI
@@ -161,9 +216,13 @@ jobs:
           GO_RESULT: ${{ needs.go.result }}
           PYTHON_RESULT: ${{ needs.python.result }}
           PYTHON_PACKAGE_RESULT: ${{ needs.python-package.result }}
+          DOTNET_RESULT: ${{ needs.dotnet.result }}
+          DOTNET_PACKAGE_RESULT: ${{ needs.dotnet-package.result }}
         run: |
           test "$NODE_RESULT" = "success"
           test "$BENCHMARK_RESULT" = "success"
           test "$GO_RESULT" = "success"
           test "$PYTHON_RESULT" = "success"
           test "$PYTHON_PACKAGE_RESULT" = "success"
+          test "$DOTNET_RESULT" = "success"
+          test "$DOTNET_PACKAGE_RESULT" = "success"

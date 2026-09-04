@@ -37,3 +37,19 @@ updates:
       - dependency-name: "*"
         update-types:
           - version-update:semver-major
+
+  - package-ecosystem: nuget
+    directory: /ports/dotnet
+    schedule:
+      interval: weekly
+    groups:
+      dotnet:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major

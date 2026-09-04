@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <RootNamespace>WorldCut</RootNamespace>
+    <AssemblyName>WorldCut</AssemblyName>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>WorldCut</PackageId>
+    <Title>WorldCut</Title>
+    <Description>Independent .NET implementation of the WorldCut decision-coherence protocol 0.1: verify that observations from independent systems satisfy explicit version and temporal requirements, with deterministic RFC 8785 canonicalization and verification-record digests. No third-party package dependencies.</Description>
+    <PackageTags>verification;consistency;distributed-systems;provenance;canonicalization;rfc8785;jcs;determinism</PackageTags>
+    <PackageReleaseNotes>First release of the independent .NET port of WorldCut protocol 0.1 and engine ruleset 0.1.2.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="PACKAGE.md" Pack="true" PackagePath="README.md" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="THIRD-PARTY-NOTICES.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="WorldCut.Tests" />
+  </ItemGroup>
+
+</Project>

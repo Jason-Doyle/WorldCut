@@ -1,0 +1,8 @@
+bin/
+obj/
+artifacts/
+.local-feed/
+.package-smoke/
+.vs/
+TestResults/
+*.user
