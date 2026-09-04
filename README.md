@@ -46,7 +46,11 @@ Demonstrated package, GitHub integration, and benchmark evidence is summarized
 in [`docs/VALIDATION.md`](docs/VALIDATION.md).
 
 Language-neutral protocol semantics and golden vectors are under
-[`spec/0.1`](spec/0.1) and [`conformance/0.1`](conformance/0.1).
+[`spec/0.1`](spec/0.1) and [`conformance/0.1`](conformance/0.1). A required CI
+gate additionally runs all four implementations over one shared corpus of golden,
+edge, invalid, malformed, and seeded random inputs and compares their complete
+results, as described in
+[`docs/DIFFERENTIAL.md`](docs/DIFFERENTIAL.md).
 
 ## Implementations
 
@@ -56,6 +60,14 @@ Language-neutral protocol semantics and golden vectors are under
 | [Go](ports/go) | 0.1 / 0.1.2 | Independent conformant verifier and CLI; integrations not yet included |
 | [Python](ports/python) | 0.1 / 0.1.2 | Independent conformant verifier and CLI; integrations not yet included |
 | [.NET](ports/dotnet) | 0.1 / 0.1.2 | Independent conformant verifier and CLI for .NET 8 and .NET 10; integrations not yet included |
+
+Every port passes the committed vectors, and the
+[cross-language differential suite](docs/DIFFERENTIAL.md) checks that they still
+agree with the TypeScript reference on inputs no vector covers:
+
+```sh
+npm run differential
+```
 
 ## Run the examples
 
@@ -469,6 +481,23 @@ npm run benchmark
 ```
 
 The project uses the Node.js test runner and has no runtime dependencies.
+
+The conformance corpus is checked with Node.js:
+
+```sh
+npm run conformance:check
+```
+
+Cross-language work additionally needs Go, Python, and .NET toolchains:
+
+```sh
+npm run differential
+```
+
+`npm run differential` builds each port's CLI once and compares all four
+implementations over one shared corpus. Its seed, case count, and executable
+overrides are documented in
+[`docs/DIFFERENTIAL.md`](docs/DIFFERENTIAL.md).
 
 Protocol details and runtime assumptions are documented in
 [`docs/PROTOCOL.md`](docs/PROTOCOL.md). Production deployment requirements are

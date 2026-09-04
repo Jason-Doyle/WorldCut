@@ -54,6 +54,7 @@ try {
     "docs/INTEGRATIONS.md",
     "docs/AGENTIC_DATA_KERNEL.md",
     "docs/VALIDATION.md",
+    "docs/DIFFERENTIAL.md",
     "spec/0.1/PROTOCOL.md",
     "spec/0.1/CANONICALIZATION.md",
     "spec/0.1/CONFORMANCE.md",
@@ -82,6 +83,7 @@ try {
     ".github/",
     "dist/benchmark/",
     "dist/test/",
+    "scripts/",
     "src/",
   ]) {
     if ([...packagedPaths].some((path) => path.startsWith(forbiddenPrefix))) {

@@ -94,7 +94,14 @@ func normalizeNumbers(value any) (any, error) {
 	switch typed := value.(type) {
 	case json.Number:
 		number, err := strconv.ParseFloat(string(typed), 64)
-		if err != nil || math.IsInf(number, 0) || math.IsNaN(number) {
+		// strconv.ErrRange covers both IEEE-754 underflow, which yields a
+		// finite +/-0, and overflow, which yields +/-Inf. TypeScript, Python,
+		// and .NET all accept underflow such as 1e-400 as zero, so only the
+		// non-finite results are protocol errors here.
+		if err != nil && !errors.Is(err, strconv.ErrRange) {
+			return nil, fmt.Errorf("invalid JSON number %q", typed)
+		}
+		if math.IsInf(number, 0) || math.IsNaN(number) {
 			return nil, fmt.Errorf("invalid JSON number %q", typed)
 		}
 		return number, nil

@@ -19,6 +19,16 @@ Exact result construction and digest material are defined in
 Human summaries, acquisition actions, ordering, and digests are included in the
 verification vectors. Implementations cannot substitute equivalent wording.
 
+## Cross-implementation checking
+
+Passing the vectors is the conformance requirement. It is not evidence that two
+implementations still agree on inputs no vector covers.
+
+This repository additionally runs every implementation over one shared corpus of
+golden, edge, invalid, malformed, and seeded random inputs and compares the
+complete results. That suite is a development and CI gate, not part of this
+normative specification; see `docs/DIFFERENTIAL.md`.
+
 ## Updating vectors
 
 Protocol behavior must change before vectors change. Update the normative
