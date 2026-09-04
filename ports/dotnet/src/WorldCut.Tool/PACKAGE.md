@@ -10,6 +10,10 @@ Targets **.NET 8** and **.NET 10**.
 
 ## Install
 
+NuGet.org publication is not configured yet. This command will apply after the
+registry release; current source-tag installation instructions are maintained
+in the port documentation linked below.
+
 ```sh
 dotnet tool install --global WorldCut.Tool
 ```
@@ -41,8 +45,8 @@ The error codes are `WORLDCUT_INVALID_ARGUMENT`, `WORLDCUT_FILE_READ_FAILED`,
 
 ## Library
 
-The verifier itself is published as the dependency-free
-[`WorldCut`](https://www.nuget.org/packages/WorldCut) package.
+The verifier itself is packaged separately as the dependency-free `WorldCut`
+library.
 
 ## More
 

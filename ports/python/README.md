@@ -6,8 +6,11 @@ required.
 
 ## Install
 
+PyPI publication is not configured yet. Install the protected source tag
+directly:
+
 ```sh
-python -m pip install worldcut
+python -m pip install "worldcut @ git+https://github.com/Jason-Doyle/WorldCut.git@ports/python/v0.1.0#subdirectory=ports/python"
 ```
 
 ## Library
