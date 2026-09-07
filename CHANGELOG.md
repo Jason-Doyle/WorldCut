@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Added tested agent effect-gating examples:
+  - a Microsoft Agent Framework .NET workflow whose effect executor is
+    reachable only through a satisfied WorldCut decision;
+  - an Azure SRE Agent custom Python tool and skill procedure using the
+    published PyPI package;
+  - framework-neutral guidance for LangGraph, OpenAI Agents SDK, MCP clients,
+    and scheduled runbooks.
 - Added Go integrations to the `ports/go` module, closing the gap where the Go
   port shipped a verifier but no adapters or integrations:
   - `adapters.CaptureGitHead`, `adapters.CaptureHTTPObservation`, and

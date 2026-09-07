@@ -4,6 +4,11 @@ Integrations are available in TypeScript and Go. Both implement the same
 behavior; the tables below give the TypeScript name first and the Go name
 second.
 
+For agent runtimes, place WorldCut on the effect path rather than exposing it
+as an optional verification tool. See
+[`AGENT_EFFECT_GATING.md`](AGENT_EFFECT_GATING.md) and the runnable Microsoft
+Agent Framework and Azure SRE Agent examples.
+
 | Integration | TypeScript | Go |
 | --- | --- | --- |
 | GitHub Actions gate | `verifyLatestGitHubWorkflow` | `githubactions.VerifyLatestWorkflow` |
