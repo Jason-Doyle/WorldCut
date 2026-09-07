@@ -45,6 +45,10 @@ authorize a production side effect.
 Demonstrated package, GitHub integration, and benchmark evidence is summarized
 in [`docs/VALIDATION.md`](docs/VALIDATION.md).
 
+Agent effect-gating patterns and runnable Microsoft Agent Framework and Azure
+SRE Agent examples are documented in
+[`docs/AGENT_EFFECT_GATING.md`](docs/AGENT_EFFECT_GATING.md).
+
 Language-neutral protocol semantics and golden vectors are under
 [`spec/0.1`](spec/0.1) and [`conformance/0.1`](conformance/0.1). A required CI
 gate additionally runs all four implementations over one shared corpus of golden,

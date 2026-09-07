@@ -203,6 +203,40 @@ jobs:
         shell: pwsh
         run: ./scripts/package-smoke.ps1
 
+  agent-examples:
+    name: Agent effect-gating examples
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 8.0.424
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.2"
+          cache: pip
+          cache-dependency-path: examples/azure-sre-agent/requirements.txt
+      - name: Build the Microsoft Agent Framework example
+        working-directory: examples/microsoft-agent-framework/dotnet
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet restore --locked-mode
+          dotnet restore --locked-mode --no-cache \
+            "-warnaserror:NU1901;NU1902;NU1903;NU1904"
+          dotnet format --verify-no-changes --no-restore
+          dotnet build --configuration Release --no-restore
+          dotnet run --configuration Release --no-build |
+            tee output.txt
+          grep -F "satisfied: applied commit-B" output.txt
+          grep -F "stale: blocked CONTRACT_VIOLATED" output.txt
+      - name: Test the Azure SRE Agent tool
+        working-directory: examples/azure-sre-agent
+        run: |
+          python -m pip install --require-hashes --requirement requirements.txt
+          python -m unittest discover -v
+
   differential:
     name: Cross-language differential
     runs-on: ubuntu-latest
@@ -252,6 +286,7 @@ jobs:
       - python-package
       - dotnet
       - dotnet-package
+      - agent-examples
       - differential
     runs-on: ubuntu-latest
     steps:
@@ -264,6 +299,7 @@ jobs:
           PYTHON_PACKAGE_RESULT: ${{ needs.python-package.result }}
           DOTNET_RESULT: ${{ needs.dotnet.result }}
           DOTNET_PACKAGE_RESULT: ${{ needs.dotnet-package.result }}
+          AGENT_EXAMPLES_RESULT: ${{ needs.agent-examples.result }}
           DIFFERENTIAL_RESULT: ${{ needs.differential.result }}
         run: |
           test "$NODE_RESULT" = "success"
@@ -273,4 +309,5 @@ jobs:
           test "$PYTHON_PACKAGE_RESULT" = "success"
           test "$DOTNET_RESULT" = "success"
           test "$DOTNET_PACKAGE_RESULT" = "success"
+          test "$AGENT_EXAMPLES_RESULT" = "success"
           test "$DIFFERENTIAL_RESULT" = "success"
