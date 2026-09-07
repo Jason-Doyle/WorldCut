@@ -27,9 +27,9 @@
       },
       "WorldCut": {
         "type": "Direct",
-        "requested": "[0.1.1, 0.1.1]",
-        "resolved": "0.1.1",
-        "contentHash": "MP73bfjXn+uVS7Ia24l5Duv6s9nma/Be1aRmwqW6Qcm68sGIQBW0JTbmXcibKC0mD1IPz30tMda/RtmTKbj3iw=="
+        "requested": "[1.0.0, 1.0.0]",
+        "resolved": "1.0.0",
+        "contentHash": "x8pOS6+MVvL2FS+wkvle1E5R9ozfcPEg1UyvKhapUYyhX43QeMtIbguBn38on4c284dFltHwAytUQbnu+Ahvvw=="
       },
       "Google.Protobuf": {
         "type": "Transitive",

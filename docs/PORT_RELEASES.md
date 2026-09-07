@@ -10,19 +10,18 @@ Python and .NET use registry-specific protected tag workflows:
 
 Current registry status:
 
-- Go `ports/go/v0.2.0` is currently published. Stable `ports/go/v1.0.0` is
-  prepared with the same protocol and engine semantics. It includes the
+- Go `ports/go/v1.0.0` is published with the same protocol and engine
+  semantics. It includes the
   adapters, the GitHub Actions gate, the
   Agentic Data Kernel adapter, `worldcut-github-ci-go`, and the Go
   construction API. The `v1.0.0` tag declares that exported surface stable;
   it is not a protocol-version change.
-- .NET `0.1.1` is currently published as
-  [`WorldCut`](https://www.nuget.org/packages/WorldCut/0.1.1) and
-  [`WorldCut.Tool`](https://www.nuget.org/packages/WorldCut.Tool/0.1.1).
-  Stable `1.0.0` packages are prepared for the protected release workflow.
-- Python `0.1.1` is currently published as
-  [`worldcut`](https://pypi.org/project/worldcut/0.1.1/) with PEP 740 digital
-  attestations for both distributions. Stable `1.0.0` artifacts are prepared.
+- .NET `1.0.0` is published as
+  [`WorldCut`](https://www.nuget.org/packages/WorldCut/1.0.0) and
+  [`WorldCut.Tool`](https://www.nuget.org/packages/WorldCut.Tool/1.0.0).
+- Python `1.0.0` is published as
+  [`worldcut`](https://pypi.org/project/worldcut/1.0.0/) with PEP 740 digital
+  attestations for both distributions.
 
 Package versions and wire versions are intentionally independent. The stable
 SDK releases continue to implement protocol `0.1` and engine `0.1.2`.

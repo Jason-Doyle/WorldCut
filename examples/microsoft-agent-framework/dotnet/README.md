@@ -40,5 +40,5 @@ The sample effect is intentionally a recorded dry run. Replace the indicated
 line in `ApplyEffectExecutor` with the real operation while preserving the gate
 and exact immutable target. Do not expose a second unguarded write tool.
 
-Packages are pinned to `WorldCut 0.1.1` and
+Packages are pinned to stable `WorldCut 1.0.0` and
 `Microsoft.Agents.AI.Workflows 1.20.0`.

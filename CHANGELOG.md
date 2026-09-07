@@ -2,8 +2,10 @@
 
 ## Unreleased
 
-- Prepared stable `1.0.0` releases for the Go, Python, and .NET package lines.
-  This is an API-stability promotion; protocol `0.1`, engine `0.1.2`, canonical
+## 1.0.0 - 2026-09-07
+
+- Promoted the npm, Go, Python, and .NET package/API lines to stable `1.0.0`.
+  This is an API-stability release; protocol `0.1`, engine `0.1.2`, canonical
   results, and verification digests are unchanged.
 - Added tested agent effect-gating examples:
   - a Microsoft Agent Framework .NET workflow whose effect executor is
@@ -44,12 +46,12 @@
   Go integrations in the port README, root README, `docs/INTEGRATIONS.md`,
   `docs/AGENTIC_DATA_KERNEL.md`, and `docs/VALIDATION.md`. The Go module keeps
   its single `jcs` dependency and adds no GitHub, Kubernetes, or cloud SDK.
-- Added OIDC trusted-publishing workflows for Python `0.1.1` on PyPI and
-  `WorldCut`/`WorldCut.Tool` `0.1.1` on NuGet.org, including protected tag
+- Added OIDC trusted-publishing workflows for Python on PyPI and
+  `WorldCut`/`WorldCut.Tool` on NuGet.org, including protected tag
   validation, exact-artifact checks, and language-specific GitHub releases.
-- Published `WorldCut` and `WorldCut.Tool` `0.1.1` on NuGet.org with
+- Published stable `WorldCut` and `WorldCut.Tool` `1.0.0` on NuGet.org with
   repository signatures and verified package contents.
-- Published Python `worldcut` `0.1.1` on PyPI with verified PEP 740
+- Published stable Python `worldcut` `1.0.0` on PyPI with verified PEP 740
   attestations for the wheel and source distribution.
 
 ## 0.2.0 - 2026-09-04

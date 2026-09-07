@@ -1,6 +1,6 @@
 {
   "name": "worldcut",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Verify cross-service observations against explicit version and temporal decision constraints.",
   "license": "Apache-2.0",
   "author": "Jason Doyle",
@@ -76,6 +76,7 @@
     "docs/VALIDATION.md",
     "docs/DIFFERENTIAL.md",
     "docs/AGENT_EFFECT_GATING.md",
+    "docs/STABILITY.md",
     "spec",
     "conformance",
     "README.md",

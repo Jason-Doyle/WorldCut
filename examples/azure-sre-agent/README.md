@@ -2,7 +2,7 @@
 
 Azure SRE Agent custom Python tools accept a typed `main(...)` function and
 must return JSON-serializable data. `worldcut_gate.py` follows that contract and
-uses the published `worldcut==0.1.1` PyPI package.
+uses the stable `worldcut==1.0.0` PyPI package.
 
 ## Create the tool
 
@@ -10,7 +10,7 @@ In **Builder > Agent Canvas > Create > Tool > Python tool**, create:
 
 - name: `worldcut_gate`
 - inputs: `verification_input` (`str`) and `target_role` (`str`)
-- pip dependency: `worldcut==0.1.1`
+- pip dependency: `worldcut==1.0.0`
 - code: paste `worldcut_gate.py`
 
 Test with the contents of `../coherent-deployment.json` and target role `head`.
