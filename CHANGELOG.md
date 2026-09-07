@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Prepared stable `1.0.0` releases for the Go, Python, and .NET package lines.
+  This is an API-stability promotion; protocol `0.1`, engine `0.1.2`, canonical
+  results, and verification digests are unchanged.
 - Added tested agent effect-gating examples:
   - a Microsoft Agent Framework .NET workflow whose effect executor is
     reachable only through a satisfied WorldCut decision;

@@ -16,7 +16,7 @@ The package has **no third-party package dependencies** and targets
 ## Install
 
 ```sh
-dotnet add package WorldCut --version 0.1.1
+dotnet add package WorldCut --version 1.0.0
 ```
 
 The matching CLI is packaged separately as a .NET tool:

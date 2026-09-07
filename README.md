@@ -61,17 +61,17 @@ results, as described in
 | Port | Protocol / engine | Status |
 | --- | --- | --- |
 | TypeScript | 0.1 / 0.1.2 | Reference package with documented integrations |
-| [Go](ports/go) | 0.1 / 0.1.2 | Independent conformant verifier, Go construction API, Git/HTTP/Kubernetes adapters, GitHub Actions gate, Agentic Data Kernel adapter, and two CLIs |
-| [Python](ports/python) | 0.1 / 0.1.2 | [`worldcut`](https://pypi.org/project/worldcut/0.1.1/) package and `worldcut-py` CLI for Python 3.11+ |
-| [.NET](ports/dotnet) | 0.1 / 0.1.2 | [`WorldCut`](https://www.nuget.org/packages/WorldCut/0.1.1) library and [`WorldCut.Tool`](https://www.nuget.org/packages/WorldCut.Tool/0.1.1) CLI for .NET 8 and .NET 10 |
+| [Go](ports/go) | 0.1 / 0.1.2 | Stable `v1.0.0` module prepared; current public tag is `v0.2.0` |
+| [Python](ports/python) | 0.1 / 0.1.2 | Stable `1.0.0` package prepared; current public release is `0.1.1` |
+| [.NET](ports/dotnet) | 0.1 / 0.1.2 | Stable `1.0.0` library and tool prepared; current public release is `0.1.1` |
 
-Python and .NET currently implement the verifier and CLI only. The adapters
-and integrations are available in TypeScript and Go.
+Python and .NET implement the verifier and CLI. The adapters and integrations
+are available in TypeScript and Go.
 
-Go is available through its public module tag, Python `0.1.1` is live on PyPI,
-and .NET `0.1.1` is live on NuGet.org. The Python release includes PEP 740
-digital attestations bound to this repository and its protected release
-workflow.
+The stable language SDK release candidates are version-only promotions:
+protocol `0.1`, engine `0.1.2`, canonical results, and verification digests are
+unchanged. Registry tags are created only after the exact merged commit passes
+main CI.
 
 Registry release configuration is documented in
 [`docs/PORT_RELEASES.md`](docs/PORT_RELEASES.md).

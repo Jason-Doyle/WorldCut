@@ -9,14 +9,17 @@ required.
 Install from PyPI:
 
 ```sh
-python -m pip install worldcut==0.1.1
+python -m pip install worldcut==1.0.0
 ```
 
 When a source install is preferred, use the protected tag:
 
 ```sh
-python -m pip install "worldcut @ git+https://github.com/Jason-Doyle/WorldCut.git@ports/python/v0.1.1#subdirectory=ports/python"
+python -m pip install "worldcut @ git+https://github.com/Jason-Doyle/WorldCut.git@ports/python/v1.0.0#subdirectory=ports/python"
 ```
+
+Version `1.0.0` is the stable Python API line. Protocol `0.1` and engine
+`0.1.2` remain separate wire-format identifiers.
 
 ## Library
 

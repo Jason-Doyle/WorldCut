@@ -9,8 +9,8 @@ Python, or Go, and without consuming generated TypeScript output.
 
 | Package | Purpose |
 | --- | --- |
-| [`WorldCut`](https://www.nuget.org/packages/WorldCut/0.1.1) | Class library. No third-party package dependencies. |
-| [`WorldCut.Tool`](https://www.nuget.org/packages/WorldCut.Tool/0.1.1) | The `worldcut-dotnet` .NET global tool. |
+| [`WorldCut`](https://www.nuget.org/packages/WorldCut/1.0.0) | Class library. No third-party package dependencies. |
+| [`WorldCut.Tool`](https://www.nuget.org/packages/WorldCut.Tool/1.0.0) | The `worldcut-dotnet` .NET global tool. |
 
 ## Framework support
 
@@ -26,17 +26,20 @@ the .NET 8 runtime is additionally required to run the `net8.0` test pass.
 Install the library and global tool from NuGet.org:
 
 ```sh
-dotnet add package WorldCut --version 0.1.1
-dotnet tool install --global WorldCut.Tool --version 0.1.1
+dotnet add package WorldCut --version 1.0.0
+dotnet tool install --global WorldCut.Tool --version 1.0.0
 ```
 
 To build an isolated local feed instead, use the protected source tag:
 
 ```sh
-git clone --branch ports/dotnet/v0.1.1 --depth 1 https://github.com/Jason-Doyle/WorldCut.git
+git clone --branch ports/dotnet/v1.0.0 --depth 1 https://github.com/Jason-Doyle/WorldCut.git
 cd WorldCut/ports/dotnet
 dotnet pack WorldCut.sln --configuration Release --output packages
 ```
+
+Version `1.0.0` is the stable .NET API line. Protocol `0.1` and engine `0.1.2`
+remain separate wire-format identifiers.
 
 ## Library
 

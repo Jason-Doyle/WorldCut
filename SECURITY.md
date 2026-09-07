@@ -14,5 +14,5 @@ potential impact. Reports will be acknowledged as soon as practical.
 
 ## Supported versions
 
-The latest `0.1.x` release and the current `main` branch receive security
-updates.
+The latest published release of each WorldCut package line and the current
+`main` branch receive security updates.

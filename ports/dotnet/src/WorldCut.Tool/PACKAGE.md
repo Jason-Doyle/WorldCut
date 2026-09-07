@@ -11,7 +11,7 @@ Targets **.NET 8** and **.NET 10**.
 ## Install
 
 ```sh
-dotnet tool install --global WorldCut.Tool --version 0.1.1
+dotnet tool install --global WorldCut.Tool --version 1.0.0
 ```
 
 ## Use

@@ -42,7 +42,7 @@ $portRoot = Split-Path -Parent $PSScriptRoot
 $repoRoot = Split-Path -Parent (Split-Path -Parent $portRoot)
 $workspace = Join-Path $portRoot '.package-smoke'
 $feed = Join-Path $workspace 'feed'
-$packageVersion = '0.1.1'
+$packageVersion = '1.0.0'
 
 # An installed tool's apphost resolves its runtime through DOTNET_ROOT or the
 # machine-wide install. When an explicit dotnet host is supplied from a private

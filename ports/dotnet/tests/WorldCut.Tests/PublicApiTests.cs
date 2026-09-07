@@ -32,7 +32,7 @@ public sealed class PublicApiTests
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()!
             .InformationalVersion;
 
-        Assert.StartsWith("0.1.1", version, StringComparison.Ordinal);
+        Assert.StartsWith("1.0.0", version, StringComparison.Ordinal);
     }
 
     [Fact]

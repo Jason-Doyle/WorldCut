@@ -1,7 +1,7 @@
 # Contributing
 
-WorldCut is an experimental project. Bug reports, failing examples, and
-well-scoped protocol proposals are welcome.
+WorldCut is a versioned protocol and SDK project. Bug reports, failing
+examples, and well-scoped protocol proposals are welcome.
 
 ## Development setup
 

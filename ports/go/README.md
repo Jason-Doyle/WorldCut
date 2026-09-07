@@ -17,13 +17,13 @@ RFC 8785 canonicalization. No GitHub, Kubernetes, or cloud SDK is used.
 ## Install
 
 ```sh
-go get github.com/Jason-Doyle/WorldCut/ports/go
-go install github.com/Jason-Doyle/WorldCut/ports/go/cmd/worldcut-go@latest
-go install github.com/Jason-Doyle/WorldCut/ports/go/cmd/worldcut-github-ci-go@latest
+go get github.com/Jason-Doyle/WorldCut/ports/go@v1.0.0
+go install github.com/Jason-Doyle/WorldCut/ports/go/cmd/worldcut-go@v1.0.0
+go install github.com/Jason-Doyle/WorldCut/ports/go/cmd/worldcut-github-ci-go@v1.0.0
 ```
 
-The integrations and `worldcut-github-ci-go` ship in the `ports/go/v0.2.0`
-module tag. From a repository checkout:
+Version `v1.0.0` is the stable Go API line. Protocol `0.1` and engine `0.1.2`
+remain separate wire-format identifiers. From a repository checkout:
 
 ```sh
 cd ports/go
