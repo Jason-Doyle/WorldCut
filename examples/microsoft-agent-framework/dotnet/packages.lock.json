@@ -29,7 +29,7 @@
         "type": "Direct",
         "requested": "[0.1.1, 0.1.1]",
         "resolved": "0.1.1",
-        "contentHash": "5dRpLCu088iEOcI/W6d3SCgJHNY4gDmRLJU+QIMb4lc1lZdAOvbvL0/LuFLW4fUNbEE3eGYwqddgwUjjK6SKzQ=="
+        "contentHash": "MP73bfjXn+uVS7Ia24l5Duv6s9nma/Be1aRmwqW6Qcm68sGIQBW0JTbmXcibKC0mD1IPz30tMda/RtmTKbj3iw=="
       },
       "Google.Protobuf": {
         "type": "Transitive",
