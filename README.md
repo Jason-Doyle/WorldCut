@@ -33,9 +33,10 @@ contract deterministically.
 
 ## Production status
 
-WorldCut 0.1 is supported for deterministic decision gating when the documented
-metadata, clock, identity, and trusted-process assumptions hold. It fails closed
-when required evidence is absent.
+WorldCut `1.x` is the stable package and API line. It implements protocol `0.1`
+and engine `0.1.2` for deterministic decision gating when the documented
+metadata, clock, identity, and trusted-process assumptions hold. It fails
+closed when required evidence is absent.
 
 It is not a general security boundary or a substitute for provider
 authentication, signed provenance, or transactional effect execution. Review
@@ -60,18 +61,18 @@ results, as described in
 
 | Port | Protocol / engine | Status |
 | --- | --- | --- |
-| TypeScript | 0.1 / 0.1.2 | Reference package with documented integrations |
-| [Go](ports/go) | 0.1 / 0.1.2 | Stable `v1.0.0` module prepared; current public tag is `v0.2.0` |
-| [Python](ports/python) | 0.1 / 0.1.2 | Stable `1.0.0` package prepared; current public release is `0.1.1` |
-| [.NET](ports/dotnet) | 0.1 / 0.1.2 | Stable `1.0.0` library and tool prepared; current public release is `0.1.1` |
+| TypeScript | 0.1 / 0.1.2 | Stable [`worldcut@1.0.0`](https://www.npmjs.com/package/worldcut) reference package with documented integrations |
+| [Go](ports/go) | 0.1 / 0.1.2 | Stable [`ports/go/v1.0.0`](https://github.com/Jason-Doyle/WorldCut/releases/tag/ports/go/v1.0.0) verifier, integrations, and two CLIs |
+| [Python](ports/python) | 0.1 / 0.1.2 | Stable [`worldcut==1.0.0`](https://pypi.org/project/worldcut/1.0.0/) package and `worldcut-py` CLI |
+| [.NET](ports/dotnet) | 0.1 / 0.1.2 | Stable [`WorldCut 1.0.0`](https://www.nuget.org/packages/WorldCut/1.0.0) library and [`WorldCut.Tool 1.0.0`](https://www.nuget.org/packages/WorldCut.Tool/1.0.0) CLI |
 
 Python and .NET implement the verifier and CLI. The adapters and integrations
 are available in TypeScript and Go.
 
-The stable language SDK release candidates are version-only promotions:
-protocol `0.1`, engine `0.1.2`, canonical results, and verification digests are
-unchanged. Registry tags are created only after the exact merged commit passes
-main CI.
+Package versions and wire versions are independent. The stable `1.x` packages
+continue to implement protocol `0.1` and engine `0.1.2`; the 1.0 promotion did
+not change canonical results or verification digests. See
+[`docs/STABILITY.md`](docs/STABILITY.md).
 
 Registry release configuration is documented in
 [`docs/PORT_RELEASES.md`](docs/PORT_RELEASES.md).

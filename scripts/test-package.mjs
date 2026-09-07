@@ -62,6 +62,7 @@ try {
     "docs/VALIDATION.md",
     "docs/DIFFERENTIAL.md",
     "docs/AGENT_EFFECT_GATING.md",
+    "docs/STABILITY.md",
     "spec/0.1/PROTOCOL.md",
     "spec/0.1/CANONICALIZATION.md",
     "spec/0.1/CONFORMANCE.md",

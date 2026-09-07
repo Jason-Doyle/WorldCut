@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Agents.AI.Workflows" Version="[1.20.0]" />
-    <PackageReference Include="WorldCut" Version="[0.1.1]" />
+    <PackageReference Include="WorldCut" Version="[1.0.0]" />
   </ItemGroup>
 
 </Project>

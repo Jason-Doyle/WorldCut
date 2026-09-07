@@ -77,13 +77,14 @@ jobs:
       - name: Build exact distributions
         working-directory: ports/python
         run: |
-          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)"
+          SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)"
+          export SOURCE_DATE_EPOCH
           python -m build
-          twine check dist/*
+          twine check ./dist/*
           mkdir -p ../../release-artifacts/python/dist
-          cp dist/* ../../release-artifacts/python/dist/
+          cp ./dist/* ../../release-artifacts/python/dist/
           cd ../../release-artifacts/python/dist
-          sha256sum * > ../SHA256SUMS
+          sha256sum ./* > ../SHA256SUMS
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: python-package
