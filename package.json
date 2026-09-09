@@ -1,6 +1,6 @@
 {
   "name": "worldcut",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Verify cross-service observations against explicit version and temporal decision constraints.",
   "license": "Apache-2.0",
   "author": "Jason Doyle",
@@ -19,7 +19,7 @@
     "provenance",
     "typescript"
   ],
-  "packageManager": "npm@10.9.7",
+  "packageManager": "npm@11.19.1",
   "publishConfig": {
     "access": "public",
     "provenance": true,

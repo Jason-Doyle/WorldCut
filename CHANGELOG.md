@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.0.1 - 2026-09-09
+
+- Replaced the long-lived npm publishing token with npm Trusted Publishing
+  through GitHub Actions OIDC.
+- Updated the repository and release workflows to npm `11.19.1`, which
+  supports OIDC while retaining the existing Node.js `22.19.0` compatibility
+  floor and release-command output contracts.
+
 ## 1.0.0 - 2026-09-07
 
 - Promoted the npm, Go, Python, and .NET package/API lines to stable `1.0.0`.
