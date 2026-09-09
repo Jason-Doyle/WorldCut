@@ -61,7 +61,7 @@ results, as described in
 
 | Port | Protocol / engine | Status |
 | --- | --- | --- |
-| TypeScript | 0.1 / 0.1.2 | Stable [`worldcut@1.0.0`](https://www.npmjs.com/package/worldcut) reference package with documented integrations |
+| TypeScript | 0.1 / 0.1.2 | Stable [`worldcut@1.0.1`](https://www.npmjs.com/package/worldcut) reference package with documented integrations |
 | [Go](ports/go) | 0.1 / 0.1.2 | Stable [`ports/go/v1.0.0`](https://github.com/Jason-Doyle/WorldCut/releases/tag/ports/go/v1.0.0) verifier, integrations, and two CLIs |
 | [Python](ports/python) | 0.1 / 0.1.2 | Stable [`worldcut==1.0.0`](https://pypi.org/project/worldcut/1.0.0/) package and `worldcut-py` CLI |
 | [.NET](ports/dotnet) | 0.1 / 0.1.2 | Stable [`WorldCut 1.0.0`](https://www.nuget.org/packages/WorldCut/1.0.0) library and [`WorldCut.Tool 1.0.0`](https://www.nuget.org/packages/WorldCut.Tool/1.0.0) CLI |

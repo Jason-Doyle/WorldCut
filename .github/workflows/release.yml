@@ -37,7 +37,7 @@ jobs:
           node-version: 22.19.0
           cache: npm
       - name: Use supported npm
-        run: npm install --global npm@10.9.7
+        run: npm install --global npm@11.19.1
       - run: npm ci
       - name: Validate release tag
         id: release
@@ -100,14 +100,14 @@ jobs:
           node-version: 22.19.0
           registry-url: https://registry.npmjs.org/
       - name: Use supported npm
-        run: npm install --global npm@10.9.7
+        run: npm install --global npm@11.19.1
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: npm-package
           path: release-artifacts
       - name: Publish exact package artifact
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ""
         run: |
           TAGGED_SHA="${{ needs.package.outputs.tagged_sha }}"
           CHECKED_OUT_SHA=$(git rev-parse HEAD)
